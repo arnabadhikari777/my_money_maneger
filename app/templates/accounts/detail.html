@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card card-hero">
+  <div class="hero-label">{{ account.display_name() }} · {{ account.account_type }}</div>
+  <div class="hero-amount">{{ account.balance | inr }}</div>
+</div>
+<div class="quick-actions">
+  <a href="{{ url_for('main.account_edit', account_id=account.id) }}">✏️ Edit</a>
+  <form method="POST" action="{{ url_for('main.account_delete', account_id=account.id) }}" style="flex:1;" onsubmit="return confirm('Archive this account?');">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button class="btn secondary" style="width:100%;padding:12px 8px;font-size:13px;border-radius:14px;" type="submit">🗄 Archive</button>
+  </form>
+</div>
+
+{% if account.account_type == "Cash" %}
+<a href="{{ url_for('main.cash_holdings', account_id=account.id) }}" class="card" style="display:block;">
+  <div class="li-title">🧾 নোট অনুযায়ী হিসাব দেখুন / ঠিক করুন</div>
+  <div class="li-sub">কোন টাকার কটা নোট আছে তা দেখুন বা প্রথমবার সেট করুন</div>
+</a>
+{% endif %}
+
+<form method="GET" class="field">
+  <input type="text" name="q" value="{{ q }}" placeholder="Search this account's transactions">
+</form>
+
+<div class="section-title" style="margin-top:0;"><span>Transactions</span></div>
+<div class="card">
+  {% for t in txns %}
+  <div class="list-item">
+    <div class="li-main">
+      <div class="li-title">{{ t.category.name if t.category else 'Money Added' }}</div>
+      <div class="li-sub">{{ t.date.strftime('%d %b %Y') }}{% if t.note %} · {{ t.note | decrypt_note }}{% endif %}</div>
+    </div>
+    <div style="text-align:right;">
+      <div class="amount {{ 'income' if t.type=='income' else 'expense' }}">{{ '+' if t.type=='income' else '-' }}{{ t.amount | inr }}</div>
+      <div style="margin-top:4px;">
+        <a href="{{ url_for('main.transaction_edit', txn_id=t.id) }}" style="font-size:11px;color:var(--text-dim);">Edit</a>
+      </div>
+    </div>
+  </div>
+  {% else %}
+  <div class="empty-state">No transactions for this account yet.</div>
+  {% endfor %}
+</div>
+{% endblock %}

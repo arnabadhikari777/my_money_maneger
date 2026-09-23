@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="section-title" style="margin-top:0;"><span>{{ account.name }} — নোট হিসাব</span></div>
+
+<div class="card">
+  <div class="li-sub">এই হিসাবটা স্বয়ংক্রিয়ভাবে আপডেট হয় যখন আপনি ক্যাশ টাকা যোগ করেন বা ক্যাশে খরচ করেন এবং নোটের হিসাব দেন। প্রথমবার ব্যবহার শুরু করার সময়, এখন আপনার হাতে ঠিক কোন নোট কতগুলো আছে সেটা এখানে বসিয়ে দিন।</div>
+</div>
+
+<form method="POST" class="card">
+  {% for d, count in holdings %}
+  <div class="denom-row">
+    <div class="denom-label">₹{{ d }}</div>
+    <input type="number" min="0" name="count_{{ d }}" value="{{ count }}" style="width:90px;text-align:center;">
+  </div>
+  {% endfor %}
+  <div class="denom-total">মোট: ₹{{ total | int }}</div>
+  <button type="submit" class="btn" style="margin-top:14px;">সেভ করুন</button>
+</form>
+{% endblock %}

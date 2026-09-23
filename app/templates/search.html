@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block content %}
+<form method="GET" class="field">
+  <input type="text" name="q" value="{{ q }}" placeholder="Search everything…" autofocus>
+</form>
+
+{% if q %}
+<div class="section-title" style="margin-top:0;"><span>Transactions</span></div>
+<div class="card">
+  {% for t in results.transactions %}
+  <div class="list-item">
+    <div class="li-main">
+      <div class="li-title">{{ t.category.name if t.category else 'Money Added' }}</div>
+      <div class="li-sub">{{ t.date.strftime('%d %b %Y') }}{% if t.note %} · {{ t.note | decrypt_note }}{% endif %}</div>
+    </div>
+    <div class="amount {{ 'income' if t.type=='income' else 'expense' }}">{{ t.amount | inr }}</div>
+  </div>
+  {% else %}<div class="empty-state">No matching transactions.</div>{% endfor %}
+</div>
+
+<div class="section-title"><span>Accounts</span></div>
+<div class="card">
+  {% for a in results.accounts %}
+  <a href="{{ url_for('main.account_detail', account_id=a.id) }}" class="list-item">
+    <div class="li-title">{{ a.display_name() }}</div><div class="amount">{{ a.balance | inr }}</div>
+  </a>
+  {% else %}<div class="empty-state">No matching accounts.</div>{% endfor %}
+</div>
+
+<div class="section-title"><span>Categories</span></div>
+<div class="card">
+  {% for c in results.categories %}
+  <a href="{{ url_for('main.category_detail', category_id=c.id) }}" class="list-item">
+    <div class="li-title">{{ c.name }}</div>
+  </a>
+  {% else %}<div class="empty-state">No matching categories.</div>{% endfor %}
+</div>
+{% endif %}
+{% endblock %}

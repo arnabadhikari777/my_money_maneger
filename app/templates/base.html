@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<meta name="theme-color" content="#0f172a">
+{% if current_user.is_authenticated %}<meta name="csrf-token" content="{{ csrf_token() }}">{% endif %}
+<title>{% block title %}Money Manager{% endblock %}</title>
+<link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+<link rel="icon" href="{{ url_for('static', filename='icons/icon-192.png') }}">
+<link rel="apple-touch-icon" href="{{ url_for('static', filename='icons/icon-192.png') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+{% if current_user.is_authenticated %}
+<header class="topbar safe-top">
+  <a href="{{ url_for('main.dashboard') }}" class="brand">💰 Money Manager</a>
+  <a href="{{ url_for('main.search') }}" class="icon-btn" aria-label="Search">🔍</a>
+</header>
+{% endif %}
+
+<main class="content {{ 'with-nav' if current_user.is_authenticated else '' }}">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="flash-stack">
+      {% for category, message in messages %}
+        <div class="flash flash-{{ category }}">{{ message }}</div>
+      {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+  {% block content %}{% endblock %}
+</main>
+
+{% if current_user.is_authenticated %}
+<nav class="bottom-nav safe-bottom">
+  <a href="{{ url_for('main.dashboard') }}" class="{{ 'active' if request.endpoint=='main.dashboard' }}">
+    <span class="nav-icon">🏠</span><span>Home</span></a>
+  <a href="{{ url_for('main.accounts_list') }}" class="{{ 'active' if request.endpoint and request.endpoint.startswith('main.account') }}">
+    <span class="nav-icon">🏦</span><span>Accounts</span></a>
+  <a href="{{ url_for('main.add_expense') }}" class="nav-fab">
+    <span class="nav-icon">➕</span></a>
+  <a href="{{ url_for('main.statistics') }}" class="{{ 'active' if request.endpoint == 'main.statistics' }}">
+    <span class="nav-icon">📊</span><span>Stats</span></a>
+  <a href="{{ url_for('main.settings') }}" class="{{ 'active' if request.endpoint == 'main.settings' }}">
+    <span class="nav-icon">⚙️</span><span>Settings</span></a>
+</nav>
+{% endif %}
+
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

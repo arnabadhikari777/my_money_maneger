@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% from "_form_errors.html" import show_errors %}
+{% block content %}
+<div class="auth-wrap">
+  <div class="auth-title">🔒 আনলক করুন</div>
+  <div class="auth-sub">আপনার নোটগুলো পাসওয়ার্ড দিয়ে এনক্রিপ্ট করা থাকে। "Remember me" দিয়ে অটো-লগইন হওয়ায় সেই কী-টা এই সেশনে নেই — চালিয়ে যেতে পাসওয়ার্ড দিন।</div>
+  <form method="POST">
+    {{ form.hidden_tag() }}
+    {{ show_errors(form) }}
+    <div class="field">{{ form.password.label }}{{ form.password(autocomplete="current-password", autofocus=true) }}</div>
+    {{ form.submit(class="btn") }}
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="section-title" style="margin-top:0;"><span>Financial Summary</span></div>
+
+<form method="GET" class="chip-row">
+  {% for key, lbl in [("today","Today"),("this_week","This Week"),("this_month","This Month"),("last_month","Last Month"),("this_year","This Year")] %}
+    <button type="submit" name="range" value="{{ key }}" class="chip {{ 'active' if preset==key }}" style="border:1px solid var(--border);">{{ lbl }}</button>
+  {% endfor %}
+</form>
+
+<div class="card card-hero">
+  <div class="li-sub">{{ start.strftime('%d %b %Y') }} – {{ end.strftime('%d %b %Y') }}</div>
+  <div class="hero-row">
+    <div class="hero-stat"><div class="label">Added</div><div class="value pos">{{ income | inr }}</div></div>
+    <div class="hero-stat"><div class="label">Spent</div><div class="value neg">{{ expense | inr }}</div></div>
+    <div class="hero-stat"><div class="label">Net</div><div class="value {{ 'pos' if remaining >= 0 else 'neg' }}">{{ remaining | inr }}</div></div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="li-sub">Total balance across accounts</div>
+  <div class="hero-amount" style="font-size:26px;margin-top:4px;">{{ total_balance | inr }}</div>
+</div>
+
+{% if budget %}
+<div class="card">
+  <div class="li-sub">Budget status</div>
+  <div class="value">{{ budget.amount | inr }} budgeted this month</div>
+</div>
+{% endif %}
+
+<div class="grid-2">
+  <div class="card"><div class="li-sub">Highest Expense</div><div class="value">{{ highest.amount | inr if highest else '—' }}</div></div>
+  <div class="card"><div class="li-sub">Top Category</div><div class="value">{{ top_category[0] or '—' }}</div></div>
+  <div class="card"><div class="li-sub">Average Expense</div><div class="value">{{ avg | inr }}</div></div>
+  <div class="card"><div class="li-sub">Transactions</div><div class="value">{{ transaction_count }}</div></div>
+</div>
+{% endblock %}

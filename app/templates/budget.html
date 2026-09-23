@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% from "_form_errors.html" import show_errors %}
+{% block content %}
+<div class="section-title" style="margin-top:0;"><span>Budget · {{ label }}</span></div>
+
+{% if budget %}
+{% set used_pct = (spent / budget.amount * 100) if budget.amount > 0 else 0 %}
+<div class="card">
+  <div class="hero-row">
+    <div class="hero-stat"><div class="label">Budget</div><div class="value">{{ budget.amount | inr }}</div></div>
+    <div class="hero-stat"><div class="label">Spent</div><div class="value neg">{{ spent | inr }}</div></div>
+    <div class="hero-stat"><div class="label">Remaining</div><div class="value pos">{{ (budget.amount - spent) | inr }}</div></div>
+  </div>
+  <div class="progress-bar {{ 'over' if used_pct > 100 }}" style="margin-top:14px;"><div style="width: {{ [used_pct, 100] | min }}%;"></div></div>
+  <div class="li-sub" style="margin-top:8px;">{{ used_pct | round(1) }}% used</div>
+</div>
+{% endif %}
+
+<form method="POST" class="card">
+  {{ form.hidden_tag() }}
+  {{ show_errors(form) }}
+  <div class="field">{{ form.amount.label }}{{ form.amount() }}</div>
+  {{ form.submit(class="btn") }}
+</form>
+{% endblock %}

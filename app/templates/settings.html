@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="section-title" style="margin-top:0;"><span>Settings</span></div>
+
+<div class="card">
+  <div class="li-title" style="margin-bottom:6px;">Install as an app</div>
+  <div class="li-sub" style="margin-bottom:12px;">Add Money Manager to your home screen for a full-screen, app-like experience.</div>
+  <button id="install-app-btn" class="btn" style="display:none;" onclick="installApp()">Install App</button>
+</div>
+
+<div class="card">
+  <div class="li-title" style="margin-bottom:6px;">Spending reminders</div>
+  <div class="li-sub" style="margin-bottom:12px;">Get a notification every few hours to check your spending and budget.</div>
+  {% if vapid_public %}
+  <button class="btn secondary" onclick="enablePushNotifications('{{ vapid_public }}')">Enable Reminders</button>
+  {% else %}
+  <div class="li-sub">Reminders aren't configured on this server yet (VAPID keys missing — see DEPLOY.md).</div>
+  {% endif %}
+</div>
+
+<div class="card">
+  <div class="li-title" style="margin-bottom:6px;">🔒 নোট এনক্রিপশন</div>
+  {% if note_unlocked %}
+  <div class="li-sub">আনলক করা আছে — আপনার নোট এই সেশনে দেখা/লেখা যাবে।</div>
+  {% else %}
+  <div class="li-sub" style="margin-bottom:12px;">লক করা আছে — নোট দেখতে/লিখতে পাসওয়ার্ড দিয়ে আনলক করুন।</div>
+  <a class="btn secondary" href="{{ url_for('auth.unlock') }}">আনলক করুন</a>
+  {% endif %}
+</div>
+
+<div class="card">
+  <a href="{{ url_for('main.categories_list') }}" class="li-title">Manage Categories →</a>
+</div>
+<div class="card">
+  <a href="{{ url_for('main.budget_view') }}" class="li-title">Manage Budget →</a>
+</div>
+<div class="card">
+  <a href="{{ url_for('main.summary') }}" class="li-title">Financial Summary →</a>
+</div>
+<div class="card">
+  <a href="{{ url_for('main.backup_page') }}" class="li-title">Backup &amp; Restore →</a>
+</div>
+<div class="card">
+  <a href="{{ url_for('auth.logout') }}" class="li-title" style="color:var(--danger);">Log Out</a>
+</div>
+{% endblock %}

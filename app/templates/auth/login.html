@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% from "_form_errors.html" import show_errors %}
+{% block content %}
+<div class="auth-wrap">
+  <div class="auth-title">Welcome back</div>
+  <div class="auth-sub">Log in to your Money Manager</div>
+  <form method="POST">
+    {{ form.hidden_tag() }}
+    {{ show_errors(form) }}
+    <div class="field">{{ form.username.label }}{{ form.username(autocomplete="username") }}</div>
+    <div class="field">{{ form.password.label }}{{ form.password(autocomplete="current-password") }}</div>
+    <div class="field" style="display:flex;align-items:center;gap:8px;">
+      {{ form.remember() }} {{ form.remember.label }}
+    </div>
+    {{ form.submit(class="btn") }}
+  </form>
+  <a class="btn-link" href="{{ url_for('auth.register') }}">Need an account? Sign up</a>
+</div>
+{% endblock %}

@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="section-title" style="margin-top:0;"><span>Statistics</span></div>
+
+<form method="GET" class="chip-row">
+  {% for key, lbl in [("today","Today"),("yesterday","Yesterday"),("this_week","This Week"),("this_month","This Month"),("last_month","Last Month"),("this_year","This Year")] %}
+    <button type="submit" name="range" value="{{ key }}" class="chip {{ 'active' if preset==key }}" style="border:1px solid var(--border);">{{ lbl }}</button>
+  {% endfor %}
+</form>
+
+<div class="card card-hero">
+  <div class="li-sub">{{ start.strftime('%d %b %Y') }} – {{ end.strftime('%d %b %Y') }}</div>
+  <div class="hero-row">
+    <div class="hero-stat"><div class="label">Income</div><div class="value pos">{{ income | inr }}</div></div>
+    <div class="hero-stat"><div class="label">Expense</div><div class="value neg">{{ expense | inr }}</div></div>
+  </div>
+</div>
+
+<div class="grid-2">
+  <div class="card">
+    <div class="li-sub">Highest Expense</div>
+    <div class="value">{{ highest.amount | inr if highest else '—' }}</div>
+    {% if highest %}<div class="li-sub">{{ highest.category.name if highest.category else '' }}</div>{% endif %}
+  </div>
+  <div class="card">
+    <div class="li-sub">Top Category</div>
+    <div class="value">{{ top_category[0] or '—' }}</div>
+    <div class="li-sub">{{ top_category[1] | inr if top_category[0] else '' }}</div>
+  </div>
+  <div class="card">
+    <div class="li-sub">Average Expense</div>
+    <div class="value">{{ avg | inr }}</div>
+  </div>
+  <div class="card">
+    <div class="li-sub">Transactions</div>
+    <div class="value">{{ transaction_count }}</div>
+  </div>
+</div>
+
+<div class="section-title"><span>Spending by Category</span></div>
+<div class="card">
+  {% for name, amt in by_category.items() | sort(attribute='1', reverse=true) %}
+  <div class="list-item">
+    <div class="li-title">{{ name }}</div>
+    <div class="amount expense">{{ amt | inr }}</div>
+  </div>
+  {% else %}
+  <div class="empty-state">No expenses in this period.</div>
+  {% endfor %}
+</div>
+
+<div class="section-title"><span>Last 6 Months</span></div>
+<div class="card">
+  {% set max_val = (monthly_totals | map(attribute=1) | max) if monthly_totals else 1 %}
+  <div class="bar-chart">
+    {% for label, val in monthly_totals %}
+    <div class="bar-wrap">
+      <div class="bar" style="height: {{ ((val / max_val * 100) if max_val > 0 else 0) | round(1) }}%;"></div>
+      <div class="bar-label">{{ label[:3] }}</div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

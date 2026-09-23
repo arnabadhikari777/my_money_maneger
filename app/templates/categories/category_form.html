@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% from "_form_errors.html" import show_errors %}
+{% block content %}
+<div class="section-title" style="margin-top:0;"><span>Add Category</span></div>
+<form method="POST" class="card">
+  {{ form.hidden_tag() }}
+  {{ show_errors(form) }}
+  <div class="field">{{ form.name.label }}{{ form.name(placeholder="e.g. Groceries") }}</div>
+  {{ form.submit(class="btn") }}
+</form>
+{% endblock %}

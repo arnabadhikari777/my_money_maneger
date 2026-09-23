@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% from "_form_errors.html" import show_errors %}
+{% block content %}
+<div class="section-title" style="margin-top:0;"><span>{{ 'Edit Expense' if editing else 'Add Expense' }}</span></div>
+
+{% if budget %}
+{% set projected = spent_so_far + (form.amount.data or 0) %}
+<div class="card">
+  <div class="li-sub">Budget this month: {{ budget.amount | inr }} · Spent so far: {{ spent_so_far | inr }}</div>
+</div>
+{% endif %}
+
+<form method="POST" class="card" id="expense-form">
+  {{ form.hidden_tag() }}
+  {{ show_errors(form) }}
+  <div class="field">{{ form.amount.label }}{{ form.amount(inputmode="decimal", autofocus=true) }}</div>
+  <div class="field">
+    {{ form.category_id.label }}
+    {{ form.category_id(id="category_id", onchange="loadSubcategories(this.value)") }}
+  </div>
+  <div class="field">{{ form.subcategory_id.label }}{{ form.subcategory_id(id="subcategory_id") }}</div>
+  <div class="field">{{ form.payment_method.label }}{{ form.payment_method(onchange="togglePaymentMethodUI()") }}</div>
+  <div class="field">{{ form.account_id.label }}{{ form.account_id(onchange="onExpenseAccountChange()") }}</div>
+  <div class="field">{{ form.date.label }}{{ form.date() }}</div>
+  <div class="field">{{ form.note.label }}{{ form.note(placeholder="What was this for?") }}</div>
+  {{ form.submit(class="btn") }}
+</form>
+
+<div class="card" id="cash-denom-box" style="display:none;">
+  <div id="cash-not-tracked-notice" class="li-sub" style="display:none;margin-bottom:10px;">
+    এই অ্যাকাউন্টের নোট-হিসাব ট্র্যাক করা হয় না (এটা Cash টাইপ নয়) — এখানে যা দেবেন তা শুধু হিসাব থেকেই বাদ যাবে, কোনো ইনভেন্টরি আপডেট হবে না।
+  </div>
+
+  <div class="li-title" style="margin-bottom:4px;">নোট যা দিলেন (Notes you gave)</div>
+  <div class="li-sub" style="margin-bottom:10px;">আপনার হাতে যা আছে তা থেকেই সরাসরি বেছে নিন — amount নিজে থেকেই বসে যাবে।</div>
+  {% for d in denominations %}
+  <div class="denom-row" data-denom="{{ d }}" data-group="given">
+    <div class="denom-label">
+      ₹{{ d }}
+      <div class="li-sub" id="have_given_{{ d }}" style="margin-top:2px;">&nbsp;</div>
+    </div>
+    <div class="denom-controls">
+      <button type="button" onclick="adjustDenom('given', {{ d }}, -1)">−</button>
+      <span class="qty" id="qty_given_{{ d }}">{{ existing_given.get(d|string, 0) if existing_given else 0 }}</span>
+      <input type="hidden" id="given_{{ d }}" name="given_{{ d }}" value="{{ existing_given.get(d|string, 0) if existing_given else 0 }}" form="expense-form">
+      <button type="button" onclick="adjustDenom('given', {{ d }}, 1)">+</button>
+    </div>
+  </div>
+  {% endfor %}
+  <div class="denom-total">মোট দেওয়া নোট: ₹<span id="given-total-value">0</span></div>
+
+  <div class="li-title" style="margin:18px 0 4px;">ভাংতি হিসেবে যা ফেরত পেলেন (Change received) — না নিলে খালি রাখুন</div>
+  {% for d in denominations %}
+  <div class="denom-row" data-denom="{{ d }}" data-group="change">
+    <div class="denom-label">₹{{ d }}</div>
+    <div class="denom-controls">
+      <button type="button" onclick="adjustDenom('change', {{ d }}, -1)">−</button>
+      <span class="qty" id="qty_change_{{ d }}">{{ existing_change.get(d|string, 0) if existing_change else 0 }}</span>
+      <input type="hidden" id="change_{{ d }}" name="change_{{ d }}" value="{{ existing_change.get(d|string, 0) if existing_change else 0 }}" form="expense-form">
+      <button type="button" onclick="adjustDenom('change', {{ d }}, 1)">+</button>
+    </div>
+  </div>
+  {% endfor %}
+  <div class="denom-total">মোট ফেরত নোট: ₹<span id="change-total-value">0</span></div>
+
+  <div class="denom-total" style="color:var(--text);margin-top:14px;">প্রকৃত খরচ (net) হবে: ₹<span id="cash-net-value">0</span></div>
+  <div id="cash-net-warning" class="flash flash-error" style="display:none;margin-top:10px;">ফেরত টাকা দেওয়া টাকার চেয়ে বেশি হতে পারে না।</div>
+  <div id="cash-max-warning" class="flash flash-error" style="display:none;margin-top:10px;">আপনার কাছে যত নোট আছে তার বেশি দেওয়া যাবে না।</div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+  const ACCOUNT_TYPES = {{ account_types | tojson }};
+  const IS_EDITING = {{ 'true' if editing else 'false' }};
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const catSelect = document.getElementById("category_id");
+    if (catSelect && catSelect.value) {
+      loadSubcategories(catSelect.value, "{{ form.subcategory_id.data or '' }}");
+    }
+    togglePaymentMethodUI();
+    recalcGroupTotal("given");
+    recalcGroupTotal("change");
+    onExpenseAccountChange();
+  });
+
+  async function onExpenseAccountChange() {
+    const accountSelect = document.getElementById("{{ form.account_id.id }}");
+    const notice = document.getElementById("cash-not-tracked-notice");
+    if (!accountSelect || !accountSelect.value) return;
+    const accountId = accountSelect.value;
+    const accountType = ACCOUNT_TYPES[accountId];
+
+    if (accountType !== "Cash") {
+      // Not a cash wallet - no inventory to show, no caps to enforce.
+      notice.style.display = "block";
+      document.querySelectorAll('[data-group="given"] [id^="have_given_"]').forEach((el) => { el.innerHTML = "&nbsp;"; });
+      document.querySelectorAll('[data-group="given"] input[type="hidden"]').forEach((el) => { delete el.dataset.max; });
+      return;
+    }
+    notice.style.display = "none";
+
+    try {
+      const res = await fetch(`/accounts/${accountId}/cash-holdings.json`);
+      const data = await res.json();
+      const holdings = data.holdings || {};
+      Object.keys(holdings).forEach((denom) => {
+        const have = holdings[denom];
+        const label = document.getElementById("have_given_" + denom);
+        if (label) label.textContent = `আপনার কাছে আছে: ${have}`;
+        const input = document.getElementById("given_" + denom);
+        if (input && !IS_EDITING) {
+          input.dataset.max = have;
+          // Clamp any already-entered value down to what's actually available.
+          if (parseInt(input.value || "0", 10) > have) {
+            input.value = have;
+            const qtyEl = document.getElementById("qty_given_" + denom);
+            if (qtyEl) qtyEl.textContent = have;
+          }
+        }
+      });
+      recalcGroupTotal("given");
+    } catch (e) {
+      // Offline or request failed - just skip the live inventory check silently.
+    }
+  }
+</script>
+{% endblock %}

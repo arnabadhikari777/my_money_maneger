@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% from "_form_errors.html" import show_errors %}
+{% block content %}
+<div class="section-title" style="margin-top:0;"><span>Backup &amp; Restore</span></div>
+
+<div class="card">
+  <div class="li-sub" style="margin-bottom:12px;">Download an encrypted copy of all your data. Choose a password you'll remember — it's needed to restore, and it isn't stored anywhere.</div>
+  <form method="POST" action="{{ url_for('main.backup_export') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="field"><label>Backup Password</label><input type="password" name="password" required minlength="8"></div>
+    <button type="submit" class="btn">Download Encrypted Backup</button>
+  </form>
+</div>
+
+<div class="card">
+  <div class="li-sub" style="margin-bottom:12px;">Restoring replaces all current data in this account with the contents of the backup file.</div>
+  <form method="POST" action="{{ url_for('main.backup_restore') }}" enctype="multipart/form-data" onsubmit="return confirm('This replaces all current data. Continue?');">
+    {{ restore_form.hidden_tag() }}
+    {{ show_errors(restore_form) }}
+    <div class="field"><label>Backup File</label><input type="file" name="backup_file" accept=".mmb" required></div>
+    <div class="field">{{ restore_form.password.label }}<input type="password" name="password" required></div>
+    <button type="submit" class="btn secondary">Restore from Backup</button>
+  </form>
+</div>
+{% endblock %}

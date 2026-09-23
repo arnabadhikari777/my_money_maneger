@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% from "_form_errors.html" import show_errors %}
+{% block content %}
+<div class="card card-hero">
+  <div class="hero-label">{{ category.name }}</div>
+  <div class="hero-amount">{{ total | inr }}</div>
+  <div class="li-sub">total spent</div>
+</div>
+<div class="quick-actions">
+  <a href="{{ url_for('main.add_expense', category_id=category.id) }}" class="primary">💸 Add Expense</a>
+</div>
+
+<div class="section-title" style="margin-top:0;"><span>Purposes</span></div>
+<div class="chip-row">
+  {% for s in category.subcategories %}<span class="chip">{{ s.name }}</span>{% endfor %}
+</div>
+<form method="POST" class="card">
+  {{ sub_form.hidden_tag() }}
+  {{ show_errors(sub_form) }}
+  <div class="field">{{ sub_form.name.label }}{{ sub_form.name(placeholder="e.g. Snacks") }}</div>
+  {{ sub_form.submit(class="btn secondary") }}
+</form>
+
+<form method="GET" class="field">
+  <input type="text" name="q" value="{{ q }}" placeholder="Search {{ category.name }} expenses">
+</form>
+
+<div class="section-title" style="margin-top:0;"><span>Expenses</span></div>
+<div class="card">
+  {% for t in txns %}
+  <div class="list-item">
+    <div class="li-main">
+      <div class="li-title">{{ t.subcategory.name if t.subcategory else category.name }}</div>
+      <div class="li-sub">{{ t.date.strftime('%d %b %Y') }} · {{ t.account.name }}{% if t.note %} · {{ t.note | decrypt_note }}{% endif %}</div>
+    </div>
+    <div class="amount expense">-{{ t.amount | inr }}</div>
+  </div>
+  {% else %}
+  <div class="empty-state">No expenses in this category yet.</div>
+  {% endfor %}
+</div>
+<form method="POST" action="{{ url_for('main.category_delete', category_id=category.id) }}" onsubmit="return confirm('Delete this category?');">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <button type="submit" class="btn danger" style="margin-top:10px;">Delete Category</button>
+</form>
+{% endblock %}

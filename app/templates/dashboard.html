@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="card card-hero">
+  <div class="hero-label">Total Available</div>
+  <div class="hero-amount">{{ total_available | inr }}</div>
+  <div class="hero-row">
+    <div class="hero-stat">
+      <div class="label">Added this month</div>
+      <div class="value pos">{{ month_income | inr }}</div>
+    </div>
+    <div class="hero-stat">
+      <div class="label">Spent this month</div>
+      <div class="value neg">{{ month_expense | inr }}</div>
+    </div>
+  </div>
+</div>
+
+<div class="quick-actions">
+  <a href="{{ url_for('main.add_money') }}">➕ Add Money</a>
+  <a href="{{ url_for('main.add_expense') }}" class="primary">💸 Add Expense</a>
+</div>
+
+{% if budget %}
+<div class="card">
+  <div class="section-title" style="margin:0 0 10px;">
+    <span>Budget this month</span>
+    <a href="{{ url_for('main.budget_view') }}">Manage</a>
+  </div>
+  {% set used_pct = (month_expense / budget.amount * 100) if budget.amount > 0 else 0 %}
+  <div class="progress-bar {{ 'over' if used_pct > 100 }}"><div style="width: {{ [used_pct, 100] | min }}%;"></div></div>
+  <div class="li-sub" style="margin-top:8px;">{{ month_expense | inr }} of {{ budget.amount | inr }} used ({{ used_pct | round(1) }}%)</div>
+</div>
+{% else %}
+<div class="card">
+  <div class="li-sub">No budget set for this month.</div>
+  <a class="btn secondary" style="margin-top:10px;" href="{{ url_for('main.budget_view') }}">Set a Budget</a>
+</div>
+{% endif %}
+
+<div class="section-title">
+  <span>Accounts</span>
+  <a href="{{ url_for('main.accounts_list') }}">See all</a>
+</div>
+{% if accounts %}
+  {% if cash_accounts %}
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <div class="li-title">💵 Cash</div>
+      <div class="acc-balance">{{ cash_total | inr }}</div>
+    </div>
+    {% if cash_notes %}
+    <div class="chip-row" style="margin-top:10px;margin-bottom:0;">
+      {% for denom, count in cash_notes %}
+      <span class="chip">₹{{ denom }} × {{ count }}</span>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="li-sub" style="margin-top:8px;">নোটের হিসাব এখনো দেওয়া হয়নি।</div>
+    {% endif %}
+    {% if cash_accounts | length == 1 %}
+    <a href="{{ url_for('main.account_detail', account_id=cash_accounts[0].id) }}" class="li-sub" style="display:block;margin-top:10px;color:var(--accent);">বিস্তারিত দেখুন →</a>
+    {% else %}
+    <a href="{{ url_for('main.accounts_list') }}" class="li-sub" style="display:block;margin-top:10px;color:var(--accent);">সব Cash অ্যাকাউন্ট দেখুন →</a>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  {% if other_accounts_count > 0 %}
+  <a href="{{ url_for('main.accounts_list') }}" class="card account-card">
+    <div>
+      <div class="acc-name">Others</div>
+      <div class="acc-type">Bank · UPI · Debit/Credit Card ({{ other_accounts_count }})</div>
+    </div>
+    <div class="acc-balance">{{ others_total | inr }}</div>
+  </a>
+  {% endif %}
+{% else %}
+  <div class="card empty-state">No accounts yet.<br><a class="btn" style="margin-top:12px;" href="{{ url_for('main.account_add') }}">Add your first account</a></div>
+{% endif %}
+
+<div class="section-title">
+  <span>Recent Transactions</span>
+  <a href="{{ url_for('main.statistics') }}">View stats</a>
+</div>
+<div class="card">
+  {% if recent %}
+    {% for t in recent %}
+    <div class="list-item">
+      <div class="li-main">
+        <div class="li-title">{{ t.category.name if t.category else 'Money Added' }}{% if t.subcategory %} · {{ t.subcategory.name }}{% endif %}</div>
+        <div class="li-sub">{{ t.date.strftime('%d %b') }} · {{ t.account.name if t.account else '' }}{% if t.note %} · {{ t.note | decrypt_note }}{% endif %}</div>
+      </div>
+      <div class="amount {{ 'income' if t.type == 'income' else 'expense' }}">
+        {{ '+' if t.type == 'income' else '-' }}{{ t.amount | inr }}
+      </div>
+    </div>
+    {% endfor %}
+  {% else %}
+    <div class="empty-state">No transactions yet.</div>
+  {% endif %}
+</div>
+
+{% endblock %}

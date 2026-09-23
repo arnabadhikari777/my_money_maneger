@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% from "_form_errors.html" import show_errors %}
+{% block content %}
+<div class="section-title" style="margin-top:0;"><span>{{ title }}</span></div>
+<form method="POST" class="card" id="account-form">
+  {{ form.hidden_tag() }}
+  {{ show_errors(form) }}
+  <div class="field">
+    {{ form.account_type.label }}
+    {{ form.account_type(id="account_type") }}
+  </div>
+  <div class="field" id="name-field">
+    {{ form.name.label }}
+    {{ form.name(id="account_name", placeholder="e.g. SBI Savings / Wallet") }}
+    <div class="field-hint" id="name-hint">For Cash you can leave the default name.</div>
+  </div>
+  <div class="field" id="last4-field">
+    {{ form.last4.label }}
+    {{ form.last4(placeholder="e.g. 4417", inputmode="numeric", maxlength="4") }}
+  </div>
+  <div class="field">
+    {{ form.opening_balance.label }}
+    {{ form.opening_balance(inputmode="decimal") }}
+  </div>
+  {{ form.submit(class="btn") }}
+</form>
+{% endblock %}
+{% block scripts %}
+<script>
+(function () {
+  const typeSelect = document.getElementById("account_type");
+  const nameInput = document.getElementById("account_name");
+  const last4Field = document.getElementById("last4-field");
+  const nameHint = document.getElementById("name-hint");
+
+  function syncFields() {
+    if (!typeSelect) return;
+    const t = typeSelect.value;
+    const isCash = t === "Cash";
+    const isUpi = t === "UPI";
+    const hideLast4 = isCash || isUpi;
+
+    if (last4Field) last4Field.style.display = hideLast4 ? "none" : "";
+    if (nameHint) {
+      nameHint.style.display = isCash || isUpi ? "" : "none";
+      nameHint.textContent = isCash
+        ? "Cash account — name auto-fills to “Cash” if empty."
+        : "UPI account — name auto-fills to “UPI” if empty.";
+    }
+
+    if ((isCash || isUpi) && nameInput && !nameInput.value.trim()) {
+      nameInput.value = isCash ? "Cash" : "UPI";
+    }
+  }
+
+  if (typeSelect) {
+    typeSelect.addEventListener("change", syncFields);
+    // Run once on load (edit form may already have a type)
+    syncFields();
+  }
+})();
+</script>
+{% endblock %}

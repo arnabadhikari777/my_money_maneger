@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% from "_form_errors.html" import show_errors %}
+{% block content %}
+<div class="auth-wrap">
+  <div class="auth-title">Create your account</div>
+  <div class="auth-sub">Your data stays private to your login</div>
+  <form method="POST">
+    {{ form.hidden_tag() }}
+    {{ show_errors(form) }}
+    <div class="field">{{ form.username.label }}{{ form.username() }}</div>
+    <div class="field">{{ form.email.label }}{{ form.email() }}</div>
+    <div class="field">{{ form.password.label }}{{ form.password() }}</div>
+    <div class="field">{{ form.confirm.label }}{{ form.confirm() }}</div>
+    {{ form.submit(class="btn") }}
+  </form>
+  <a class="btn-link" href="{{ url_for('auth.login') }}">Already have an account? Log in</a>
+</div>
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="section-title" style="margin-top:0;">
+  <span>Accounts</span>
+  <a href="{{ url_for('main.account_add') }}">+ Add</a>
+</div>
+<div class="card card-hero">
+  <div class="li-sub">Total across accounts</div>
+  <div class="hero-amount" style="font-size:26px;margin-top:4px;">{{ total | inr }}</div>
+</div>
+{% for a in accounts %}
+<a href="{{ url_for('main.account_detail', account_id=a.id) }}" class="card account-card">
+  <div>
+    <div class="acc-name">{{ a.display_name() }}</div>
+    <div class="acc-type">{{ a.account_type }}</div>
+  </div>
+  <div class="acc-balance">{{ a.balance | inr }}</div>
+</a>
+{% else %}
+<div class="card empty-state">No accounts yet.</div>
+{% endfor %}
+{% endblock %}
