@@ -114,6 +114,27 @@ class CashHolding(db.Model):
     __table_args__ = (db.UniqueConstraint("account_id", "denom", name="uq_cashholding_account_denom"),)
 
 
+class Recharge(db.Model):
+    """Tracks a recharge/subscription's validity period, linked to the expense
+    that paid for it. Reminders fire 7 days and 3 days before `expiry_date`
+    (checked once a day by the /api/pending-reminders endpoint); once expired,
+    it shows as a red badge on the dashboard until dismissed."""
+    __tablename__ = "recharges"
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False, index=True)
+    transaction_id = db.Column(db.Integer, db.ForeignKey("transactions.id"), nullable=True, index=True)
+    duration_days = db.Column(db.Integer, nullable=False)
+    start_date = db.Column(db.Date, nullable=False)
+    expiry_date = db.Column(db.Date, nullable=False, index=True)
+    notified_7d = db.Column(db.Boolean, nullable=False, default=False)
+    notified_3d = db.Column(db.Boolean, nullable=False, default=False)
+    dismissed = db.Column(db.Boolean, nullable=False, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    transaction = db.relationship("Transaction", backref=db.backref("recharge", uselist=False))
+
+
 class PushSubscription(db.Model):
     __tablename__ = "push_subscriptions"
 

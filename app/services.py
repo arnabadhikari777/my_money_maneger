@@ -23,7 +23,7 @@ Reversing a transaction (edit/delete) applies the exact opposite deltas.
 import json
 from decimal import Decimal
 from app.extensions import db
-from app.models import Account, Transaction, CashHolding
+from app.models import Account, Transaction, CashHolding, Recharge
 
 
 def _apply_effect(account: Account, txn_type: str, amount: Decimal, sign: int = 1):
@@ -154,6 +154,7 @@ def delete_transaction(user_id, txn_id):
         _apply_cash_breakdown(txn.account_id, txn.cash_breakdown, sign=-1)
         db.session.add(account)
 
+    Recharge.query.filter_by(transaction_id=txn.id).delete()
     db.session.delete(txn)
     db.session.commit()
 

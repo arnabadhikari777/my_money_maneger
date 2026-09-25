@@ -23,6 +23,15 @@
   <div class="field">{{ form.account_id.label }}{{ form.account_id(onchange="onExpenseAccountChange()") }}</div>
   <div class="field">{{ form.date.label }}{{ form.date() }}</div>
   <div class="field">{{ form.note.label }}{{ form.note(placeholder="What was this for?") }}</div>
+
+  <div class="field" style="display:flex;align-items:center;gap:8px;">
+    {{ form.is_recharge(onchange="toggleRechargeUI()") }} {{ form.is_recharge.label }}
+  </div>
+  <div class="field" id="recharge-duration-field" style="display:none;">
+    {{ form.recharge_duration.label }}{{ form.recharge_duration() }}
+    <div class="li-sub" style="margin-top:6px;">মেয়াদ শেষ হওয়ার ৭ দিন আগে এবং ৩ দিন আগে আপনাকে জানানো হবে।</div>
+  </div>
+
   {{ form.submit(class="btn") }}
 </form>
 
@@ -82,7 +91,15 @@
     recalcGroupTotal("given");
     recalcGroupTotal("change");
     onExpenseAccountChange();
+    toggleRechargeUI();
   });
+
+  function toggleRechargeUI() {
+    const checkbox = document.getElementById("{{ form.is_recharge.id }}");
+    const box = document.getElementById("recharge-duration-field");
+    if (!checkbox || !box) return;
+    box.style.display = checkbox.checked ? "block" : "none";
+  }
 
   async function onExpenseAccountChange() {
     const accountSelect = document.getElementById("{{ form.account_id.id }}");

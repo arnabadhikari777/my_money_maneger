@@ -44,3 +44,17 @@ class Config:
     PAYMENT_METHODS = ["Cash", "UPI", "Debit Card", "Credit Card", "Bank Transfer", "Other"]
     ACCOUNT_TYPES = ["Bank Account", "Cash", "UPI", "Debit Card", "Credit Card", "Other"]
     CASH_DENOMINATIONS = [500, 200, 100, 50, 20, 10, 5, 2, 1]
+
+    # Recharge/subscription validity dropdown (days, label). Reminders fire
+    # 7 days and 3 days before the computed expiry date - not configurable
+    # per item, this applies the same way everywhere.
+    RECHARGE_DURATIONS = [
+        (1, "1 day"),
+        (7, "7 days (weekly)"),
+        (28, "28 days"),
+        (30, "30 days"),
+        (56, "56 days"),
+        (84, "84 days"),
+        (180, "180 days (6 months)"),
+        (365, "365 days (yearly)"),
+    ]

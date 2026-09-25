@@ -27,6 +27,9 @@ def create_app(config_class=Config):
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
     app.register_blueprint(api_bp)
+    # /api/* is called by an external script (GitHub Actions) with a shared
+    # secret, not by a browser form - it has no CSRF token to send.
+    csrf.exempt(api_bp)
 
     # Security headers (baseline; add HSTS once confirmed permanently on HTTPS)
     @app.after_request

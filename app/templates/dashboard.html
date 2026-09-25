@@ -21,6 +21,37 @@
   <a href="{{ url_for('main.add_expense') }}" class="primary">💸 Add Expense</a>
 </div>
 
+{% if expired_recharges %}
+{% for r in expired_recharges %}
+<div class="card" style="border-color:var(--danger);background:rgba(248,113,113,0.08);">
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
+    <div>
+      <div class="li-title" style="color:var(--danger);">🔴 {{ r.label }}: Mobile Recharge Expired</div>
+      <div class="li-sub" style="margin-top:4px;">মেয়াদ শেষ হয়েছে {{ r.expiry_date.strftime('%d %b') }} তারিখে।</div>
+    </div>
+    <form method="POST" action="{{ url_for('main.recharge_dismiss', recharge_id=r.id) }}">
+      <button type="submit" class="btn secondary" style="padding:10px 14px;font-size:12px;white-space:nowrap;">Renewed</button>
+    </form>
+  </div>
+</div>
+{% endfor %}
+{% endif %}
+
+{% if upcoming_recharges %}
+<div class="card">
+  <div class="li-title" style="margin-bottom:8px;">🔔 আসন্ন রিচার্জ/সাবস্ক্রিপশন</div>
+  {% for r in upcoming_recharges %}
+  <div class="list-item">
+    <div class="li-main">
+      <div class="li-title">{{ r.label }}</div>
+      <div class="li-sub">{{ r.expiry_date.strftime('%d %b') }} তারিখে শেষ হবে</div>
+    </div>
+    <div class="li-sub">{{ r.days_left }} দিন বাকি</div>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
 {% if budget %}
 <div class="card">
   <div class="section-title" style="margin:0 0 10px;">

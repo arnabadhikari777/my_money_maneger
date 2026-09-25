@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from decimal import Decimal
 import json
 
@@ -8,7 +8,7 @@ from flask_login import login_required, current_user
 import io
 
 from app.extensions import db
-from app.models import Account, Category, Subcategory, Transaction, Budget, PushSubscription, CashHolding
+from app.models import Account, Category, Subcategory, Transaction, Budget, PushSubscription, CashHolding, Recharge
 from app import services
 from app.crypto import encrypt_text, decrypt_text
 from app.main.forms import (AccountForm, AddMoneyForm, ExpenseForm, BudgetForm,
@@ -124,6 +124,17 @@ def _cash_shortage_message(problems):
     return "আপনার কাছে যতগুলো নোট আছে তার বেশি দেওয়া যাবে না — " + "; ".join(parts)
 
 
+def _recharge_label(recharge):
+    txn = recharge.transaction
+    if txn is None:
+        return "Recharge"
+    if txn.category and txn.subcategory:
+        return f"{txn.category.name} · {txn.subcategory.name}"
+    if txn.category:
+        return txn.category.name
+    return "Recharge"
+
+
 def _totals_for_range(start, end):
     txns = Transaction.query.filter(
         Transaction.user_id == current_user.id,
@@ -165,6 +176,19 @@ def dashboard():
 
     budget = Budget.query.filter_by(user_id=current_user.id, period_key=month_key(today)).first()
 
+    recharges = Recharge.query.filter_by(user_id=current_user.id, dismissed=False).all()
+    expired_recharges = []
+    upcoming_recharges = []
+    for r in recharges:
+        r.label = _recharge_label(r)
+        r.days_left = (r.expiry_date - today).days
+        if r.expiry_date < today:
+            expired_recharges.append(r)
+        elif r.days_left <= 7:
+            upcoming_recharges.append(r)
+    expired_recharges.sort(key=lambda r: r.expiry_date)
+    upcoming_recharges.sort(key=lambda r: r.expiry_date)
+
     return render_template(
         "dashboard.html",
         accounts=accounts,
@@ -179,6 +203,8 @@ def dashboard():
         remaining=total_available,
         recent=recent,
         budget=budget,
+        expired_recharges=expired_recharges,
+        upcoming_recharges=upcoming_recharges,
     )
 
 
@@ -462,12 +488,20 @@ def add_expense():
         if account and account.balance < amount and account.account_type != "Credit Card":
             flash(f"Heads up: this will take {account.name} negative.", "info")
         sub_id = form.subcategory_id.data or None
-        services.create_transaction(
+        txn = services.create_transaction(
             user_id=current_user.id, txn_type="expense", amount=amount,
             account_id=form.account_id.data, category_id=form.category_id.data,
             subcategory_id=sub_id, payment_method=form.payment_method.data,
             date=form.date.data, note=_encrypt_note(form.note.data), cash_breakdown=cash_breakdown,
         )
+        if form.is_recharge.data and form.recharge_duration.data:
+            expiry = form.date.data + timedelta(days=form.recharge_duration.data)
+            db.session.add(Recharge(
+                user_id=current_user.id, transaction_id=txn.id,
+                duration_days=form.recharge_duration.data,
+                start_date=form.date.data, expiry_date=expiry,
+            ))
+            db.session.commit()
         flash("Expense recorded.", "success")
         return redirect(url_for("main.dashboard"))
 
@@ -596,6 +630,16 @@ def transaction_delete(txn_id):
     except ValueError:
         abort(404)
     return redirect(request.referrer or url_for("main.dashboard"))
+
+
+@main_bp.route("/recharges/<int:recharge_id>/dismiss", methods=["POST"])
+@login_required
+def recharge_dismiss(recharge_id):
+    r = Recharge.query.filter_by(id=recharge_id, user_id=current_user.id).first_or_404()
+    r.dismissed = True
+    db.session.commit()
+    flash("Reminder dismissed.", "info")
+    return redirect(url_for("main.dashboard"))
 
 
 # ---------- budget ----------
