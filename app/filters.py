@@ -34,6 +34,6 @@ def register(app):
             return ""
         key_str = flask_session.get("enc_key")
         if not key_str:
-            return "🔒 আনলক করে দেখুন"
+            return "🔒 Unlock to view"
         plain = decrypt_text(key_str.encode("utf-8"), value)
-        return plain if plain is not None else "🔒 (ডিক্রিপ্ট করা যায়নি)"
+        return plain if plain is not None else "🔒 (couldn't decrypt)"

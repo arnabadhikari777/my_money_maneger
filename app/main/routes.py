@@ -30,7 +30,7 @@ def _require_unlock():
     Returns a redirect response if the session doesn't have the encryption
     key yet (e.g. after a 'Remember me' auto-login); otherwise None."""
     if _enc_key() is None:
-        flash("নোট দেখতে/লিখতে হলে আগে পাসওয়ার্ড দিয়ে আনলক করুন।", "info")
+        flash("Enter your password to unlock your notes first.", "info")
         return redirect(url_for("auth.unlock", next=request.path))
     return None
 
@@ -120,8 +120,8 @@ def _validate_cash_given(account_id, given: dict, old_given: dict = None):
 
 
 def _cash_shortage_message(problems):
-    parts = [f"₹{d}: চেয়েছেন {q}টা, আছে {a}টা" for d, q, a in problems]
-    return "আপনার কাছে যতগুলো নোট আছে তার বেশি দেওয়া যাবে না — " + "; ".join(parts)
+    parts = [f"₹{d}: asked for {q}, you have {a}" for d, q, a in problems]
+    return "You can't give more notes than you actually have — " + "; ".join(parts)
 
 
 def _recharge_label(recharge):
@@ -404,7 +404,7 @@ def add_money():
             # For a Cash wallet, the note count IS the amount - no manual entry.
             denom_amount, cash_breakdown = _income_cash_from_request()
             if denom_amount is None or denom_amount <= 0:
-                flash("Cash অ্যাকাউন্টে টাকা যোগ করতে অন্তত একটা নোট বেছে দিন।", "error")
+                flash("Pick at least one note to add money to a cash account.", "error")
                 return render_template("add_money.html", form=form,
                                         denominations=Config.CASH_DENOMINATIONS, account_types=account_types)
             amount = denom_amount

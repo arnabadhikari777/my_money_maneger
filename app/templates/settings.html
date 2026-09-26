@@ -4,43 +4,43 @@
 
 <div class="card">
   <div class="li-title" style="margin-bottom:6px;">Install as an app</div>
-  <div class="li-sub" style="margin-bottom:12px;">Add Money Manager to your home screen for a full-screen, app-like experience.</div>
-  <button id="install-app-btn" class="btn" style="display:none;" onclick="installApp()">Install App</button>
+  <div class="li-sub" style="margin-bottom:12px;">Add Money Manager to your home screen for a full-screen, app-like feel.</div>
+  <button id="install-app-btn" class="btn" style="display:none;" onclick="installApp()">Install app</button>
 </div>
 
 <div class="card">
-  <div class="li-title" style="margin-bottom:6px;">Spending reminders</div>
-  <div class="li-sub" style="margin-bottom:12px;">Get a notification every few hours to check your spending and budget.</div>
+  <div class="li-title" style="margin-bottom:6px;">Recharge & subscription reminders</div>
+  <div class="li-sub" style="margin-bottom:12px;">Get notified 7 days and 3 days before a recharge or subscription you've logged runs out.</div>
   {% if vapid_public %}
-  <button class="btn secondary" onclick="enablePushNotifications('{{ vapid_public }}')">Enable Reminders</button>
+  <button class="btn secondary" onclick="enablePushNotifications('{{ vapid_public }}')">Enable reminders</button>
   {% else %}
-  <div class="li-sub">Reminders aren't configured on this server yet (VAPID keys missing — see DEPLOY.md).</div>
+  <div class="li-sub">Reminders aren't set up on this server yet (VAPID keys missing — see DEPLOY.md).</div>
   {% endif %}
 </div>
 
 <div class="card">
-  <div class="li-title" style="margin-bottom:6px;">🔒 নোট এনক্রিপশন</div>
+  <div class="li-title" style="margin-bottom:6px;">🔒 Note encryption</div>
   {% if note_unlocked %}
-  <div class="li-sub">আনলক করা আছে — আপনার নোট এই সেশনে দেখা/লেখা যাবে।</div>
+  <div class="li-sub">Unlocked — your notes are readable and editable for this session.</div>
   {% else %}
-  <div class="li-sub" style="margin-bottom:12px;">লক করা আছে — নোট দেখতে/লিখতে পাসওয়ার্ড দিয়ে আনলক করুন।</div>
-  <a class="btn secondary" href="{{ url_for('auth.unlock') }}">আনলক করুন</a>
+  <div class="li-sub" style="margin-bottom:12px;">Locked — enter your password to read or write notes.</div>
+  <a class="btn secondary" href="{{ url_for('auth.unlock') }}">Unlock</a>
   {% endif %}
 </div>
 
 <div class="card">
-  <a href="{{ url_for('main.categories_list') }}" class="li-title">Manage Categories →</a>
+  <a href="{{ url_for('main.categories_list') }}" class="li-title">Manage categories →</a>
 </div>
 <div class="card">
-  <a href="{{ url_for('main.budget_view') }}" class="li-title">Manage Budget →</a>
+  <a href="{{ url_for('main.budget_view') }}" class="li-title">Manage budget →</a>
 </div>
 <div class="card">
-  <a href="{{ url_for('main.summary') }}" class="li-title">Financial Summary →</a>
+  <a href="{{ url_for('main.summary') }}" class="li-title">Financial summary →</a>
 </div>
 <div class="card">
-  <a href="{{ url_for('main.backup_page') }}" class="li-title">Backup &amp; Restore →</a>
+  <a href="{{ url_for('main.backup_page') }}" class="li-title">Backup &amp; restore →</a>
 </div>
 <div class="card">
-  <a href="{{ url_for('auth.logout') }}" class="li-title" style="color:var(--danger);">Log Out</a>
+  <a href="{{ url_for('auth.logout') }}" class="li-title" style="color:var(--coral);">Log out</a>
 </div>
 {% endblock %}

@@ -14,8 +14,8 @@
 
 {% if account.account_type == "Cash" %}
 <a href="{{ url_for('main.cash_holdings', account_id=account.id) }}" class="card" style="display:block;">
-  <div class="li-title">🧾 নোট অনুযায়ী হিসাব দেখুন / ঠিক করুন</div>
-  <div class="li-sub">কোন টাকার কটা নোট আছে তা দেখুন বা প্রথমবার সেট করুন</div>
+  <div class="li-title">🧾 Your note breakdown</div>
+  <div class="li-sub">See what's in your wallet, or set it for the first time</div>
 </a>
 {% endif %}
 
@@ -28,7 +28,7 @@
   {% for t in txns %}
   <div class="list-item">
     <div class="li-main">
-      <div class="li-title">{{ t.category.name if t.category else 'Money Added' }}</div>
+      <div class="li-title">{{ t.category.name if t.category else 'Money added' }}</div>
       <div class="li-sub">{{ t.date.strftime('%d %b %Y') }}{% if t.note %} · {{ t.note | decrypt_note }}{% endif %}</div>
     </div>
     <div style="text-align:right;">

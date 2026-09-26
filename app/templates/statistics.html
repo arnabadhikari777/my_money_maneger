@@ -4,7 +4,7 @@
 
 <form method="GET" class="chip-row">
   {% for key, lbl in [("today","Today"),("yesterday","Yesterday"),("this_week","This Week"),("this_month","This Month"),("last_month","Last Month"),("this_year","This Year")] %}
-    <button type="submit" name="range" value="{{ key }}" class="chip {{ 'active' if preset==key }}" style="border:1px solid var(--border);">{{ lbl }}</button>
+    <button type="submit" name="range" value="{{ key }}" class="chip {{ 'active' if preset==key }}" style="border:1px solid var(--hairline);">{{ lbl }}</button>
   {% endfor %}
 </form>
 

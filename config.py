@@ -56,6 +56,5 @@ class Config:
         (56, "56 days"),
         (84, "84 days"),
         (180, "180 days (6 months)"),
-        (210, "210 days (7 months)"),
         (365, "365 days (yearly)"),
     ]

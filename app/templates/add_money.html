@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% from "_form_errors.html" import show_errors %}
 {% block content %}
-<div class="section-title" style="margin-top:0;"><span>{{ 'Edit' if editing else 'Add Money' }}</span></div>
+<div class="section-title" style="margin-top:0;"><span>{{ 'Edit' if editing else 'Add money' }}</span></div>
 <form method="POST" class="card" id="money-form">
   {{ form.hidden_tag() }}
   {{ show_errors(form) }}
@@ -18,8 +18,8 @@
 </form>
 
 <div class="card" id="cash-count-box" style="display:none;">
-  <div class="li-title" style="margin-bottom:4px;">কতগুলো নোট যোগ করছেন?</div>
-  <div class="li-sub" style="margin-bottom:10px;">এই অ্যাকাউন্ট Cash — তাই amount আলাদা করে লিখতে হবে না, নিচে থেকে নোট বেছে দিন, টাকার পরিমাণ নিজে থেকেই বসে যাবে।</div>
+  <div class="li-title" style="margin-bottom:4px;">How many notes are you adding?</div>
+  <div class="li-sub" style="margin-bottom:10px;">This is a cash account, so there's no amount to type — pick your notes below and I'll work out the total.</div>
   {% for d in denominations %}
   <div class="denom-row" data-denom="{{ d }}" data-group="denom">
     <div class="denom-label">₹{{ d }}</div>

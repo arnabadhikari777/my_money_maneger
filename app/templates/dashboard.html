@@ -2,7 +2,8 @@
 {% block content %}
 
 <div class="card card-hero">
-  <div class="hero-label">Total Available</div>
+  <div class="greeting" id="dash-greeting">Hey {{ current_user.username }}</div>
+  <div class="hero-label">Total available</div>
   <div class="hero-amount">{{ total_available | inr }}</div>
   <div class="hero-row">
     <div class="hero-stat">
@@ -17,60 +18,45 @@
 </div>
 
 <div class="quick-actions">
-  <a href="{{ url_for('main.add_money') }}">➕ Add Money</a>
-  <a href="{{ url_for('main.add_expense') }}" class="primary">💸 Add Expense</a>
+  <a href="{{ url_for('main.add_money') }}">➕ Add money</a>
+  <a href="{{ url_for('main.add_expense') }}" class="primary">💸 Add expense</a>
 </div>
 
 {% if expired_recharges %}
 {% for r in expired_recharges %}
-<div class="card" style="border-color:var(--danger);background:rgba(248,113,113,0.08);">
-  <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
+<div class="card reminder-card">
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
     <div>
-      <div class="li-title" style="color:var(--danger);">🔴 {{ r.label }}: Mobile Recharge Expired</div>
-      <div class="li-sub" style="margin-top:4px;">মেয়াদ শেষ হয়েছে {{ r.expiry_date.strftime('%d %b') }} তারিখে।</div>
+      <div class="li-title" style="color:var(--coral);">🔴 {{ r.label }} — Mobile Recharge Expired</div>
+      <div class="li-sub" style="margin-top:4px;">Ran out on {{ r.expiry_date.strftime('%d %b') }}. Renewed it already?</div>
     </div>
     <form method="POST" action="{{ url_for('main.recharge_dismiss', recharge_id=r.id) }}">
-      <button type="submit" class="btn secondary" style="padding:10px 14px;font-size:12px;white-space:nowrap;">Renewed</button>
+      <button type="submit" class="btn secondary" style="padding:11px 16px;font-size:12px;white-space:nowrap;">Renewed</button>
     </form>
   </div>
 </div>
 {% endfor %}
 {% endif %}
 
-{% if upcoming_recharges %}
-<div class="card">
-  <div class="li-title" style="margin-bottom:8px;">🔔 আসন্ন রিচার্জ/সাবস্ক্রিপশন</div>
-  {% for r in upcoming_recharges %}
-  <div class="list-item">
-    <div class="li-main">
-      <div class="li-title">{{ r.label }}</div>
-      <div class="li-sub">{{ r.expiry_date.strftime('%d %b') }} তারিখে শেষ হবে</div>
-    </div>
-    <div class="li-sub">{{ r.days_left }} দিন বাকি</div>
-  </div>
-  {% endfor %}
-</div>
-{% endif %}
-
 {% if budget %}
 <div class="card">
-  <div class="section-title" style="margin:0 0 10px;">
-    <span>Budget this month</span>
+  <div class="section-title" style="margin:0 0 12px;">
+    <span>This month's budget</span>
     <a href="{{ url_for('main.budget_view') }}">Manage</a>
   </div>
   {% set used_pct = (month_expense / budget.amount * 100) if budget.amount > 0 else 0 %}
   <div class="progress-bar {{ 'over' if used_pct > 100 }}"><div style="width: {{ [used_pct, 100] | min }}%;"></div></div>
-  <div class="li-sub" style="margin-top:8px;">{{ month_expense | inr }} of {{ budget.amount | inr }} used ({{ used_pct | round(1) }}%)</div>
+  <div class="li-sub" style="margin-top:9px;">{{ month_expense | inr }} of {{ budget.amount | inr }} used — {{ used_pct | round(1) }}%{% if used_pct > 100 %}, over budget{% endif %}</div>
 </div>
 {% else %}
 <div class="card">
-  <div class="li-sub">No budget set for this month.</div>
-  <a class="btn secondary" style="margin-top:10px;" href="{{ url_for('main.budget_view') }}">Set a Budget</a>
+  <div class="li-sub">You haven't set a budget for this month yet.</div>
+  <a class="btn secondary" style="margin-top:12px;" href="{{ url_for('main.budget_view') }}">Set a budget</a>
 </div>
 {% endif %}
 
 <div class="section-title">
-  <span>Accounts</span>
+  <span>Your accounts</span>
   <a href="{{ url_for('main.accounts_list') }}">See all</a>
 </div>
 {% if accounts %}
@@ -81,18 +67,18 @@
       <div class="acc-balance">{{ cash_total | inr }}</div>
     </div>
     {% if cash_notes %}
-    <div class="chip-row" style="margin-top:10px;margin-bottom:0;">
+    <div class="chip-row" style="margin-top:12px;margin-bottom:0;">
       {% for denom, count in cash_notes %}
       <span class="chip">₹{{ denom }} × {{ count }}</span>
       {% endfor %}
     </div>
     {% else %}
-    <div class="li-sub" style="margin-top:8px;">নোটের হিসাব এখনো দেওয়া হয়নি।</div>
+    <div class="li-sub" style="margin-top:8px;">You haven't logged your notes yet.</div>
     {% endif %}
     {% if cash_accounts | length == 1 %}
-    <a href="{{ url_for('main.account_detail', account_id=cash_accounts[0].id) }}" class="li-sub" style="display:block;margin-top:10px;color:var(--accent);">বিস্তারিত দেখুন →</a>
+    <a href="{{ url_for('main.account_detail', account_id=cash_accounts[0].id) }}" class="li-sub" style="display:block;margin-top:10px;color:var(--gold);">See the breakdown →</a>
     {% else %}
-    <a href="{{ url_for('main.accounts_list') }}" class="li-sub" style="display:block;margin-top:10px;color:var(--accent);">সব Cash অ্যাকাউন্ট দেখুন →</a>
+    <a href="{{ url_for('main.accounts_list') }}" class="li-sub" style="display:block;margin-top:10px;color:var(--gold);">See all cash accounts →</a>
     {% endif %}
   </div>
   {% endif %}
@@ -101,17 +87,32 @@
   <a href="{{ url_for('main.accounts_list') }}" class="card account-card">
     <div>
       <div class="acc-name">Others</div>
-      <div class="acc-type">Bank · UPI · Debit/Credit Card ({{ other_accounts_count }})</div>
+      <div class="acc-type">Bank · UPI · Cards ({{ other_accounts_count }})</div>
     </div>
     <div class="acc-balance">{{ others_total | inr }}</div>
   </a>
   {% endif %}
 {% else %}
-  <div class="card empty-state">No accounts yet.<br><a class="btn" style="margin-top:12px;" href="{{ url_for('main.account_add') }}">Add your first account</a></div>
+  <div class="card empty-state">No accounts yet — add one to start tracking.<br><a class="btn" style="margin-top:14px;" href="{{ url_for('main.account_add') }}">Add your first account</a></div>
+{% endif %}
+
+{% if upcoming_recharges %}
+<div class="section-title"><span>Coming up</span></div>
+<div class="card">
+  {% for r in upcoming_recharges %}
+  <div class="list-item">
+    <div class="li-main">
+      <div class="li-title">{{ r.label }}</div>
+      <div class="li-sub">Runs out {{ r.expiry_date.strftime('%d %b') }}</div>
+    </div>
+    <div class="li-sub">{{ r.days_left }} day{{ 's' if r.days_left != 1 }} left</div>
+  </div>
+  {% endfor %}
+</div>
 {% endif %}
 
 <div class="section-title">
-  <span>Recent Transactions</span>
+  <span>Recent activity</span>
   <a href="{{ url_for('main.statistics') }}">View stats</a>
 </div>
 <div class="card">
@@ -119,7 +120,7 @@
     {% for t in recent %}
     <div class="list-item">
       <div class="li-main">
-        <div class="li-title">{{ t.category.name if t.category else 'Money Added' }}{% if t.subcategory %} · {{ t.subcategory.name }}{% endif %}</div>
+        <div class="li-title">{{ t.category.name if t.category else 'Money added' }}{% if t.subcategory %} · {{ t.subcategory.name }}{% endif %}</div>
         <div class="li-sub">{{ t.date.strftime('%d %b') }} · {{ t.account.name if t.account else '' }}{% if t.note %} · {{ t.note | decrypt_note }}{% endif %}</div>
       </div>
       <div class="amount {{ 'income' if t.type == 'income' else 'expense' }}">
@@ -128,8 +129,22 @@
     </div>
     {% endfor %}
   {% else %}
-    <div class="empty-state">No transactions yet.</div>
+    <div class="empty-state">Nothing logged yet — your activity will show up here.</div>
   {% endif %}
 </div>
 
+{% endblock %}
+{% block scripts %}
+<script>
+  (function () {
+    var el = document.getElementById('dash-greeting');
+    if (!el) return;
+    var h = new Date().getHours();
+    var g = 'Good evening,';
+    if (h < 5) g = 'Up late,';
+    else if (h < 12) g = 'Good morning,';
+    else if (h < 17) g = 'Good afternoon,';
+    el.textContent = g + ' ' + {{ current_user.username | tojson }};
+  })();
+</script>
 {% endblock %}

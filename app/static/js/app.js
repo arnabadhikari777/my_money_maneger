@@ -36,7 +36,7 @@ async function enablePushNotifications(vapidPublicKey) {
     headers: { "Content-Type": "application/json", "X-CSRFToken": csrfToken() },
     body: JSON.stringify(sub),
   });
-  alert("Reminders enabled. You'll get a nudge every few hours.");
+  alert("Reminders enabled — I'll let you know before your recharges run out.");
 }
 
 // --- Android "Add to Home Screen" install prompt ---

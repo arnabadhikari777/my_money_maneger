@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
-<meta name="theme-color" content="#0f172a">
+<meta name="theme-color" content="#15171d">
 {% if current_user.is_authenticated %}<meta name="csrf-token" content="{{ csrf_token() }}">{% endif %}
 <title>{% block title %}Money Manager{% endblock %}</title>
 <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
@@ -13,8 +13,8 @@
 </head>
 <body>
 {% if current_user.is_authenticated %}
-<header class="topbar safe-top">
-  <a href="{{ url_for('main.dashboard') }}" class="brand">💰 Money Manager</a>
+<header class="topbar">
+  <a href="{{ url_for('main.dashboard') }}" class="brand"><span class="dot"></span>Money Manager</a>
   <a href="{{ url_for('main.search') }}" class="icon-btn" aria-label="Search">🔍</a>
 </header>
 {% endif %}
@@ -33,7 +33,7 @@
 </main>
 
 {% if current_user.is_authenticated %}
-<nav class="bottom-nav safe-bottom">
+<nav class="bottom-nav">
   <a href="{{ url_for('main.dashboard') }}" class="{{ 'active' if request.endpoint=='main.dashboard' }}">
     <span class="nav-icon">🏠</span><span>Home</span></a>
   <a href="{{ url_for('main.accounts_list') }}" class="{{ 'active' if request.endpoint and request.endpoint.startswith('main.account') }}">

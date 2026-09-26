@@ -2,8 +2,8 @@
 {% from "_form_errors.html" import show_errors %}
 {% block content %}
 <div class="auth-wrap">
-  <div class="auth-title">🔒 আনলক করুন</div>
-  <div class="auth-sub">আপনার নোটগুলো পাসওয়ার্ড দিয়ে এনক্রিপ্ট করা থাকে। "Remember me" দিয়ে অটো-লগইন হওয়ায় সেই কী-টা এই সেশনে নেই — চালিয়ে যেতে পাসওয়ার্ড দিন।</div>
+  <div class="auth-title">🔒 Unlock your notes</div>
+  <div class="auth-sub">Your notes are encrypted with your password. Since "Remember me" logged you back in without asking for it, that key isn't in this session — enter your password to continue.</div>
   <form method="POST">
     {{ form.hidden_tag() }}
     {{ show_errors(form) }}
