@@ -42,6 +42,19 @@ def pending_reminders():
     if not CRON_SECRET or secret != CRON_SECRET:
         return jsonify({"ok": False, "error": "unauthorized"}), 403
 
+    if request.args.get("test") == "1":
+        # Test mode: ignore real due-dates entirely, just confirm the whole
+        # pipeline (this endpoint -> GitHub Actions -> push service -> phone)
+        # actually works, for every currently-subscribed device.
+        subs = PushSubscription.query.all()
+        return jsonify([{
+            "endpoint": s.endpoint,
+            "keys": {"p256dh": s.p256dh, "auth": s.auth},
+            "title": "My Money Tracker",
+            "body": "Test notification - if you see this, reminders are working!",
+            "url": "/",
+        } for s in subs])
+
     today = date.today()
     to_send = []
 
@@ -66,7 +79,7 @@ def pending_reminders():
             to_send.append({
                 "endpoint": sub.endpoint,
                 "keys": {"p256dh": sub.p256dh, "auth": sub.auth},
-                "title": "Money Manager Reminder",
+                "title": "My Money Tracker Reminder",
                 "body": body,
                 "url": "/",
             })
@@ -132,7 +145,7 @@ def send_budget_reminders():
                     "keys": {"p256dh": sub.p256dh, "auth": sub.auth},
                 },
                 data=json.dumps({
-                    "title": "Money Manager",
+                    "title": "My Money Tracker",
                     "body": "Time for a quick check of your spending and budget.",
                     "url": "/",
                 }),

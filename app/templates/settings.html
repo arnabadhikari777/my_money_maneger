@@ -4,8 +4,9 @@
 
 <div class="card">
   <div class="li-title" style="margin-bottom:6px;">Install as an app</div>
-  <div class="li-sub" style="margin-bottom:12px;">Add Money Manager to your home screen for a full-screen, app-like feel.</div>
+  <div class="li-sub" style="margin-bottom:12px;">Add My Money Tracker to your home screen for a full-screen, app-like feel.</div>
   <button id="install-app-btn" class="btn" style="display:none;" onclick="installApp()">Install app</button>
+  <span id="install-status" class="install-status" style="display:none;">✓ Installed on this device</span>
 </div>
 
 <div class="card">
@@ -41,6 +42,6 @@
   <a href="{{ url_for('main.backup_page') }}" class="li-title">Backup &amp; restore →</a>
 </div>
 <div class="card">
-  <a href="{{ url_for('auth.logout') }}" class="li-title" style="color:var(--coral);">Log out</a>
+  <a href="{{ url_for('auth.logout') }}" class="li-title" style="color:var(--rust);">Log out</a>
 </div>
 {% endblock %}

@@ -2,18 +2,32 @@
 {% block content %}
 <div class="section-title" style="margin-top:0;"><span>{{ account.name }} — notes on hand</span></div>
 
-<div class="card">
-  <div class="li-sub">This updates itself whenever you add cash or spend cash with the note breakdown filled in. For a first-time setup, just tell me what you're actually holding right now.</div>
+<div class="wallet-total">
+  <div class="label">Total in your wallet</div>
+  <div class="figure">₹<span id="wallet-total-value">{{ total | int }}</span></div>
 </div>
 
-<form method="POST" class="card">
+<div class="card">
+  <div class="li-sub">This keeps itself in sync whenever you add cash or spend cash with the note breakdown filled in. For a first-time setup, just tap up or down until it matches what's actually in your hand.</div>
+</div>
+
+<form method="POST" class="card" id="wallet-form">
   {% for d, count in holdings %}
-  <div class="denom-row">
+  <div class="denom-row" data-denom="{{ d }}" data-group="wallet">
     <div class="denom-label">₹{{ d }}</div>
-    <input type="number" min="0" name="count_{{ d }}" value="{{ count }}" style="width:90px;text-align:center;">
+    <div class="denom-controls">
+      <button type="button" onclick="adjustDenom('wallet', {{ d }}, -1)">−</button>
+      <span class="qty" id="qty_wallet_{{ d }}">{{ count }}</span>
+      <input type="hidden" id="wallet_{{ d }}" name="count_{{ d }}" value="{{ count }}" form="wallet-form">
+      <button type="button" onclick="adjustDenom('wallet', {{ d }}, 1)">+</button>
+    </div>
   </div>
   {% endfor %}
-  <div class="denom-total">Total: ₹{{ total | int }}</div>
-  <button type="submit" class="btn" style="margin-top:14px;">Save</button>
+  <button type="submit" class="btn" style="margin-top:18px;">Save</button>
 </form>
+{% endblock %}
+{% block scripts %}
+<script>
+  document.addEventListener("DOMContentLoaded", () => recalcGroupTotal("wallet"));
+</script>
 {% endblock %}

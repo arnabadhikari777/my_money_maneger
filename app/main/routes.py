@@ -59,6 +59,22 @@ def _user_categories():
     return Category.query.filter_by(user_id=current_user.id).order_by(Category.name).all()
 
 
+def _ensure_recharge_category():
+    """Self-heals accounts created before the dedicated recharge category
+    existed: makes sure every user has one 'Bills & Recharges' category with
+    its usual subcategories, without needing a fresh registration."""
+    existing = Category.query.filter_by(user_id=current_user.id, is_recharge_category=True).first()
+    if existing:
+        return existing
+    cat = Category(user_id=current_user.id, name=Config.RECHARGE_CATEGORY_NAME, is_recharge_category=True)
+    db.session.add(cat)
+    db.session.flush()
+    for sub_name in Config.DEFAULT_CATEGORIES.get(Config.RECHARGE_CATEGORY_NAME, []):
+        db.session.add(Subcategory(category_id=cat.id, name=sub_name))
+    db.session.commit()
+    return cat
+
+
 def _populate_account_choices(field):
     field.choices = [(a.id, a.display_name()) for a in _user_accounts()]
 
@@ -314,6 +330,7 @@ def account_delete(account_id):
 @main_bp.route("/categories")
 @login_required
 def categories_list():
+    _ensure_recharge_category()
     categories = _user_categories()
     today = date.today()
     month_start = today.replace(day=1)
@@ -437,6 +454,7 @@ def add_expense():
     if unlock_redirect:
         return unlock_redirect
 
+    recharge_category = _ensure_recharge_category()
     form = ExpenseForm()
     _populate_account_choices(form.account_id)
     _populate_category_choices(form.category_id)
@@ -474,7 +492,7 @@ def add_expense():
                         budget = Budget.query.filter_by(user_id=current_user.id, period_key=month_key(today)).first()
                         return render_template("add_expense.html", form=form, budget=budget,
                                                 spent_so_far=Decimal("0"), denominations=Config.CASH_DENOMINATIONS,
-                                                account_types=account_types)
+                                                account_types=account_types, recharge_category_id=recharge_category.id)
                 cash_amount, cash_breakdown = _expense_cash_from_request()
                 if cash_amount <= 0:
                     flash("The change you received can't be more than the cash you gave.", "error")
@@ -482,11 +500,20 @@ def add_expense():
                     budget = Budget.query.filter_by(user_id=current_user.id, period_key=month_key(today)).first()
                     return render_template("add_expense.html", form=form, budget=budget,
                                             spent_so_far=Decimal("0"), denominations=Config.CASH_DENOMINATIONS,
-                                            account_types=account_types)
+                                            account_types=account_types, recharge_category_id=recharge_category.id)
                 amount = cash_amount
 
         if account and account.balance < amount and account.account_type != "Credit Card":
             flash(f"Heads up: this will take {account.name} negative.", "info")
+
+        if form.category_id.data == recharge_category.id and not form.recharge_duration.data:
+            flash("Pick how long this recharge/bill covers, so I know when to remind you.", "error")
+            today = date.today()
+            budget = Budget.query.filter_by(user_id=current_user.id, period_key=month_key(today)).first()
+            return render_template("add_expense.html", form=form, budget=budget,
+                                    spent_so_far=Decimal("0"), denominations=Config.CASH_DENOMINATIONS,
+                                    account_types=account_types, recharge_category_id=recharge_category.id)
+
         sub_id = form.subcategory_id.data or None
         txn = services.create_transaction(
             user_id=current_user.id, txn_type="expense", amount=amount,
@@ -494,7 +521,7 @@ def add_expense():
             subcategory_id=sub_id, payment_method=form.payment_method.data,
             date=form.date.data, note=_encrypt_note(form.note.data), cash_breakdown=cash_breakdown,
         )
-        if form.is_recharge.data and form.recharge_duration.data:
+        if form.category_id.data == recharge_category.id and form.recharge_duration.data:
             expiry = form.date.data + timedelta(days=form.recharge_duration.data)
             db.session.add(Recharge(
                 user_id=current_user.id, transaction_id=txn.id,
@@ -512,7 +539,8 @@ def add_expense():
         _, _, spent_so_far = _totals_for_range(today.replace(day=1), today)
 
     return render_template("add_expense.html", form=form, budget=budget, spent_so_far=spent_so_far,
-                            denominations=Config.CASH_DENOMINATIONS, account_types=account_types)
+                            denominations=Config.CASH_DENOMINATIONS, account_types=account_types,
+                            recharge_category_id=recharge_category.id)
 
 
 @main_bp.route("/subcategories/<int:category_id>.json")
@@ -562,6 +590,7 @@ def transaction_edit(txn_id):
     _populate_account_choices(form.account_id)
     _populate_category_choices(form.category_id)
     account_types = {a.id: a.account_type for a in _user_accounts()}
+    recharge_category = _ensure_recharge_category()
     subs = Subcategory.query.filter_by(category_id=txn.category_id).all() if txn.category_id else []
     form.subcategory_id.choices = [(0, "— none —")] + [(s.id, s.name) for s in subs]
     if request.method == "GET":
@@ -594,14 +623,14 @@ def transaction_edit(txn_id):
                         return render_template("add_expense.html", form=form, budget=None,
                                                 spent_so_far=Decimal("0"), editing=True,
                                                 denominations=Config.CASH_DENOMINATIONS,
-                                                account_types=account_types)
+                                                account_types=account_types, recharge_category_id=recharge_category.id)
                 cash_amount, cash_breakdown = _expense_cash_from_request()
                 if cash_amount <= 0:
                     flash("The change you received can't be more than the cash you gave.", "error")
                     return render_template("add_expense.html", form=form, budget=None,
                                             spent_so_far=Decimal("0"), editing=True,
                                             denominations=Config.CASH_DENOMINATIONS,
-                                            account_types=account_types)
+                                            account_types=account_types, recharge_category_id=recharge_category.id)
                 update_fields["amount"] = cash_amount
                 update_fields["cash_breakdown"] = cash_breakdown
             else:
@@ -618,7 +647,8 @@ def transaction_edit(txn_id):
     return render_template("add_expense.html", form=form, budget=None, spent_so_far=Decimal("0"),
                             editing=True, existing_given=existing_breakdown.get("given", {}),
                             existing_change=existing_breakdown.get("change", {}),
-                            denominations=Config.CASH_DENOMINATIONS, account_types=account_types)
+                            denominations=Config.CASH_DENOMINATIONS, account_types=account_types,
+                            recharge_category_id=recharge_category.id)
 
 
 @main_bp.route("/transactions/<int:txn_id>/delete", methods=["POST"])
@@ -802,7 +832,7 @@ def backup_export():
     blob = export_user_data(current_user, password)
     return send_file(
         io.BytesIO(blob), as_attachment=True,
-        download_name=f"moneymanager-backup-{date.today().isoformat()}.mmb",
+        download_name=f"my-money-tracker-backup-{date.today().isoformat()}.mmb",
         mimetype="application/octet-stream",
     )
 

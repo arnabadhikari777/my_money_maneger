@@ -12,7 +12,8 @@ auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 
 def _seed_default_categories(user):
     for cat_name, subs in Config.DEFAULT_CATEGORIES.items():
-        cat = Category(user_id=user.id, name=cat_name)
+        cat = Category(user_id=user.id, name=cat_name,
+                        is_recharge_category=(cat_name == Config.RECHARGE_CATEGORY_NAME))
         db.session.add(cat)
         db.session.flush()
         for sub_name in subs:
@@ -46,7 +47,8 @@ def register():
         db.session.commit()
         _seed_default_categories(user)
         _unlock_session(user, form.password.data)
-        login_user(user)
+        session.permanent = True
+        login_user(user, remember=True)
         flash("Welcome! Your account has been created.", "success")
         return redirect(url_for("main.dashboard"))
     return render_template("auth/register.html", form=form)
@@ -63,6 +65,7 @@ def login():
             flash("Invalid username or password.", "error")
             return render_template("auth/login.html", form=form)
         _unlock_session(user, form.password.data)
+        session.permanent = True
         login_user(user, remember=form.remember.data)
         next_page = request.args.get("next")
         return redirect(next_page or url_for("main.dashboard"))
@@ -80,6 +83,7 @@ def unlock():
             flash("Wrong password.", "error")
             return render_template("auth/unlock.html", form=form)
         _unlock_session(current_user, form.password.data)
+        session.permanent = True
         flash("Unlocked.", "success")
         next_page = request.args.get("next")
         return redirect(next_page or url_for("main.dashboard"))

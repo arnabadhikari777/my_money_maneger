@@ -41,12 +41,33 @@ async function enablePushNotifications(vapidPublicKey) {
 
 // --- Android "Add to Home Screen" install prompt ---
 let deferredInstallPrompt = null;
+
+function isRunningInstalled() {
+  return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+}
+
+function refreshInstallUI() {
+  const btn = document.getElementById("install-app-btn");
+  const status = document.getElementById("install-status");
+  if (!btn && !status) return;
+
+  if (isRunningInstalled()) {
+    if (btn) btn.style.display = "none";
+    if (status) status.style.display = "inline-flex";
+  } else {
+    if (status) status.style.display = "none";
+    if (btn) btn.style.display = deferredInstallPrompt ? "block" : "none";
+  }
+}
+
 window.addEventListener("beforeinstallprompt", (e) => {
   e.preventDefault();
   deferredInstallPrompt = e;
-  const btn = document.getElementById("install-app-btn");
-  if (btn) btn.style.display = "block";
+  refreshInstallUI();
 });
+
+window.addEventListener("appinstalled", refreshInstallUI);
+document.addEventListener("DOMContentLoaded", refreshInstallUI);
 
 function installApp() {
   if (!deferredInstallPrompt) return;

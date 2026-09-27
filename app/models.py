@@ -52,6 +52,7 @@ class Category(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False, index=True)
     name = db.Column(db.String(80), nullable=False)
+    is_recharge_category = db.Column(db.Boolean, nullable=False, default=False)
 
     subcategories = db.relationship("Subcategory", backref="category", lazy=True, cascade="all, delete-orphan")
     transactions = db.relationship("Transaction", backref="category", lazy=True)

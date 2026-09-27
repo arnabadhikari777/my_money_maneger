@@ -1,24 +1,29 @@
 {% extends "base.html" %}
 {% block content %}
 
-<div class="card card-hero">
+<div class="greeting-block">
   <div class="greeting" id="dash-greeting">Hey {{ current_user.username }}</div>
-  <div class="hero-label">Total available</div>
-  <div class="hero-amount">{{ total_available | inr }}</div>
-  <div class="hero-row">
-    <div class="hero-stat">
-      <div class="label">Added this month</div>
-      <div class="value pos">{{ month_income | inr }}</div>
-    </div>
-    <div class="hero-stat">
-      <div class="label">Spent this month</div>
-      <div class="value neg">{{ month_expense | inr }}</div>
-    </div>
+  <div class="greeting-sub">Here's where things stand today.</div>
+</div>
+
+<div class="balance-strip">
+  <div class="main-figure">
+    <div class="label">Total available</div>
+    <div class="amount-lg">{{ total_available | inr }}</div>
+  </div>
+  <div class="divider"></div>
+  <div class="mini-figure">
+    <div class="label">In this month</div>
+    <div class="amount-sm" style="color:var(--olive);">{{ month_income | inr }}</div>
+  </div>
+  <div class="mini-figure">
+    <div class="label">Out this month</div>
+    <div class="amount-sm" style="color:var(--rust);">{{ month_expense | inr }}</div>
   </div>
 </div>
 
 <div class="quick-actions">
-  <a href="{{ url_for('main.add_money') }}">➕ Add money</a>
+  <a href="{{ url_for('main.add_money') }}">➕ Cash in</a>
   <a href="{{ url_for('main.add_expense') }}" class="primary">💸 Add expense</a>
 </div>
 
@@ -27,7 +32,7 @@
 <div class="card reminder-card">
   <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
     <div>
-      <div class="li-title" style="color:var(--coral);">🔴 {{ r.label }} — Mobile Recharge Expired</div>
+      <div class="li-title" style="color:var(--rust);">🔴 {{ r.label }} — Mobile Recharge Expired</div>
       <div class="li-sub" style="margin-top:4px;">Ran out on {{ r.expiry_date.strftime('%d %b') }}. Renewed it already?</div>
     </div>
     <form method="POST" action="{{ url_for('main.recharge_dismiss', recharge_id=r.id) }}">

@@ -52,7 +52,7 @@ Under **Web tab → Static files**, map:
 - URL `/static/` → Directory `/home/YOURUSERNAME/moneymanager/app/static/`
 
 ## 7. (Optional) Enable push notification reminders
-1. Generate a VAPID key pair: `pip install py-vapid && vapid --gen` (do this once, keep the private key secret).
+1. Generate a VAPID key pair by running `generate_vapid_keys.py` (from the `github-notifier` bundle) in your PythonAnywhere venv — see that script's comments for exactly why (a naive `py-vapid` one-liner produces a PEM-formatted key that `pywebpush` cannot actually parse, which silently breaks every push send).
 2. Put the public/private keys into the WSGI file's environment variables above.
 3. Under **Tasks tab**, add a scheduled task (every day is the coarsest built-in interval on
    the free tier — for true 4–5 hour spacing you'll need a paid plan's finer scheduling, or

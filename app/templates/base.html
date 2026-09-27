@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
-<meta name="theme-color" content="#15171d">
+<meta name="theme-color" content="#f7f5ef">
 {% if current_user.is_authenticated %}<meta name="csrf-token" content="{{ csrf_token() }}">{% endif %}
-<title>{% block title %}Money Manager{% endblock %}</title>
+<title>{% block title %}My Money Tracker{% endblock %}</title>
 <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
 <link rel="icon" href="{{ url_for('static', filename='icons/icon-192.png') }}">
 <link rel="apple-touch-icon" href="{{ url_for('static', filename='icons/icon-192.png') }}">
@@ -14,7 +14,7 @@
 <body>
 {% if current_user.is_authenticated %}
 <header class="topbar">
-  <a href="{{ url_for('main.dashboard') }}" class="brand"><span class="dot"></span>Money Manager</a>
+  <a href="{{ url_for('main.dashboard') }}" class="brand"><span class="brand-my">MY</span><span class="brand-money">MONEY</span><span class="brand-tracker">TRACKER</span></a>
   <a href="{{ url_for('main.search') }}" class="icon-btn" aria-label="Search">🔍</a>
 </header>
 {% endif %}

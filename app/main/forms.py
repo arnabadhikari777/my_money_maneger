@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, SelectField, DecimalField, DateField, TextAreaField, SubmitField, BooleanField
+from wtforms import StringField, SelectField, DecimalField, DateField, TextAreaField, SubmitField
 from wtforms.validators import DataRequired, InputRequired, Length, Optional, NumberRange, Regexp
 from config import Config
 
@@ -19,7 +19,7 @@ class AddMoneyForm(FlaskForm):
     account_id = SelectField("Receiving Account", coerce=int, validators=[DataRequired()])
     date = DateField("Date", validators=[DataRequired()])
     note = StringField("Note / Source (optional)", validators=[Optional(), Length(max=255)])
-    submit = SubmitField("Add Money")
+    submit = SubmitField("Cash In")
 
 
 class ExpenseForm(FlaskForm):
@@ -30,9 +30,9 @@ class ExpenseForm(FlaskForm):
     account_id = SelectField("Source Account", coerce=int, validators=[DataRequired()])
     date = DateField("Date", validators=[DataRequired()])
     note = StringField("Note (optional)", validators=[Optional(), Length(max=255)])
-    is_recharge = BooleanField("This is a recharge / subscription")
     recharge_duration = SelectField("Validity", coerce=int, validators=[Optional()],
-                                     choices=[(d, l) for d, l in Config.RECHARGE_DURATIONS])
+                                     choices=[(0, "— how long does this cover? —")] +
+                                              [(d, l) for d, l in Config.RECHARGE_DURATIONS])
     submit = SubmitField("Add Expense")
 
 

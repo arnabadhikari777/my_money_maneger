@@ -50,7 +50,7 @@ self.addEventListener("fetch", (event) => {
 
 // --- Web Push ---
 self.addEventListener("push", (event) => {
-  let data = { title: "Money Manager", body: "Check your spending.", url: "/" };
+  let data = { title: "My Money Tracker", body: "Check your spending.", url: "/" };
   try {
     if (event.data) data = event.data.json();
   } catch (e) {}

@@ -5,6 +5,8 @@ BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
 
 class Config:
+    APP_NAME = "My Money Tracker"
+
     SECRET_KEY = os.environ.get("SECRET_KEY", "change-this-to-a-long-random-value-before-deploying")
     SQLALCHEMY_DATABASE_URI = os.environ.get(
         "DATABASE_URL", "sqlite:///" + os.path.join(BASE_DIR, "instance", "moneymanager.db")
@@ -18,6 +20,16 @@ class Config:
     SESSION_COOKIE_SECURE = os.environ.get("SESSION_COOKIE_SECURE", "1") == "1"
     PERMANENT_SESSION_LIFETIME = timedelta(days=30)
 
+    # "Remember me" persistence. The regular session cookie is marked
+    # permanent on login (see auth/routes.py) so it actually survives
+    # closing the browser/PWA for PERMANENT_SESSION_LIFETIME, instead of
+    # being a session-only cookie that's wiped every time the app is closed
+    # (which was forcing repeated logins/unlocks even with "Remember me" on).
+    REMEMBER_COOKIE_DURATION = timedelta(days=30)
+    REMEMBER_COOKIE_HTTPONLY = True
+    REMEMBER_COOKIE_SECURE = SESSION_COOKIE_SECURE
+    REMEMBER_COOKIE_SAMESITE = "Lax"
+
     # WTForms / CSRF
     WTF_CSRF_ENABLED = True
 
@@ -29,6 +41,8 @@ class Config:
 
     # Backup encryption uses the user's own password-derived key (see backup.py), no separate secret needed.
 
+    RECHARGE_CATEGORY_NAME = "Bills & Recharges"
+
     DEFAULT_CATEGORIES = {
         "Food": ["Breakfast", "Lunch", "Dinner", "Restaurant", "Snacks"],
         "Transport": ["Bus", "Train", "Auto", "Taxi", "Fuel"],
@@ -36,8 +50,10 @@ class Config:
         "Education": ["Fees", "Books", "Courses"],
         "Health": ["Medicine", "Doctor", "Fitness"],
         "Technology": ["Gadgets", "Software", "Repairs"],
-        "Home": ["Rent", "Utilities", "Maintenance"],
-        "Entertainment": ["Movies", "Subscriptions", "Outings"],
+        "Home": ["Rent", "Maintenance"],
+        "Entertainment": ["Movies", "Outings"],
+        RECHARGE_CATEGORY_NAME: ["Mobile Recharge", "WiFi / Internet", "Electricity Bill",
+                                  "DTH / Cable", "OTT Subscription", "Insurance", "Other Bill"],
         "Other": ["Miscellaneous"],
     }
 

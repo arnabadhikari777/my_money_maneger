@@ -16,7 +16,7 @@
   <div class="field">{{ form.amount.label }}{{ form.amount(inputmode="decimal", autofocus=true) }}</div>
   <div class="field">
     {{ form.category_id.label }}
-    {{ form.category_id(id="category_id", onchange="loadSubcategories(this.value)") }}
+    {{ form.category_id(id="category_id", onchange="loadSubcategories(this.value); toggleRechargeUI();") }}
   </div>
   <div class="field">{{ form.subcategory_id.label }}{{ form.subcategory_id(id="subcategory_id") }}</div>
   <div class="field">{{ form.payment_method.label }}{{ form.payment_method(onchange="togglePaymentMethodUI()") }}</div>
@@ -24,9 +24,6 @@
   <div class="field">{{ form.date.label }}{{ form.date() }}</div>
   <div class="field">{{ form.note.label }}{{ form.note(placeholder="What was this for?") }}</div>
 
-  <div class="field" style="display:flex;align-items:center;gap:8px;">
-    {{ form.is_recharge(onchange="toggleRechargeUI()") }} {{ form.is_recharge.label }}
-  </div>
   <div class="field" id="recharge-duration-field" style="display:none;">
     {{ form.recharge_duration.label }}{{ form.recharge_duration() }}
     <div class="li-sub" style="margin-top:6px;">I'll remind you 7 days and 3 days before this runs out.</div>
@@ -80,6 +77,7 @@
 {% block scripts %}
 <script>
   const ACCOUNT_TYPES = {{ account_types | tojson }};
+  const RECHARGE_CATEGORY_ID = {{ recharge_category_id | tojson }};
   const IS_EDITING = {{ 'true' if editing else 'false' }};
 
   document.addEventListener("DOMContentLoaded", () => {
@@ -95,10 +93,11 @@
   });
 
   function toggleRechargeUI() {
-    const checkbox = document.getElementById("{{ form.is_recharge.id }}");
+    const catSelect = document.getElementById("category_id");
     const box = document.getElementById("recharge-duration-field");
-    if (!checkbox || !box) return;
-    box.style.display = checkbox.checked ? "block" : "none";
+    if (!catSelect || !box) return;
+    const isRechargeCategory = parseInt(catSelect.value, 10) === RECHARGE_CATEGORY_ID;
+    box.style.display = isRechargeCategory ? "block" : "none";
   }
 
   async function onExpenseAccountChange() {
