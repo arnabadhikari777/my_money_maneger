@@ -545,12 +545,6 @@ button {
         transform 0.35s var(--spring),
         filter 0.25s ease;
 }
-.bottom-nav a:not(.active):not(.nav-fab) .nav-icon {
-    filter: grayscale(1) opacity(0.55);
-}
-.bottom-nav a.active .nav-icon {
-    animation: float 2.6s ease-in-out infinite;
-}
 .bottom-nav a:active .nav-icon {
     transform: scale(0.8) translateY(2px);
 }
@@ -591,11 +585,6 @@ button {
 }
 .bottom-nav a.nav-fab:active {
     transform: scale(0.86) rotate(90deg);
-}
-.nav-fab .nav-icon {
-    font-size: 22px;
-    filter: brightness(0.2) !important;
-    animation: none !important;
 }
 @media (hover: hover) {
     .bottom-nav a.nav-fab:hover .nav-icon {
@@ -656,13 +645,6 @@ a.card:active,
     font-size: 13.5px;
     color: var(--text-dim);
     margin-top: 4px;
-}
-.greeting-sub::before {
-    content: "👋";
-    display: inline-block;
-    margin-right: 6px;
-    transform-origin: 70% 70%;
-    animation: wave 3s ease-in-out 1s infinite;
 }
 
 /* ---------- hero cards: balance strip + stats ---------- */
@@ -905,9 +887,10 @@ a.card:active,
         background 0.2s ease;
 }
 .section-title a::after {
-    content: " →";
+    content: "→";
     display: inline-block;
-    transition: transform 0.3s var(--spring);
+    margin-left: 5px;
+    animation: nudge 1.8s ease-in-out infinite;
 }
 .section-title a:active {
     transform: scale(0.9);
@@ -1677,6 +1660,295 @@ input[type="radio"]:checked {
     box-shadow:
         0 10px 20px -10px rgba(30, 58, 95, 0.8),
         0 0 0 4px var(--navy-dim);
+}
+
+/* ============================================================
+   CUSTOM ICON SET — replaces emoji with crisp SVG icons (CSS masks)
+   ============================================================ */
+:root {
+    --i-home: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2024%2024'%20fill%3D'none'%20stroke%3D'%23000'%20stroke-width%3D'2'%20stroke-linecap%3D'round'%20stroke-linejoin%3D'round'%3E%3Cpath%20d%3D'M3%2011l9-8%209%208'%2F%3E%3Cpath%20d%3D'M5%209.5V20h5v-6h4v6h5V9.5'%2F%3E%3C%2Fsvg%3E");
+    --i-bank: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2024%2024'%20fill%3D'none'%20stroke%3D'%23000'%20stroke-width%3D'2'%20stroke-linecap%3D'round'%20stroke-linejoin%3D'round'%3E%3Cpath%20d%3D'M12%203L2.5%209h19z'%2F%3E%3Cpath%20d%3D'M5%2012v6M9.5%2012v6M14.5%2012v6M19%2012v6'%2F%3E%3Cpath%20d%3D'M3%2021h18'%2F%3E%3C%2Fsvg%3E");
+    --i-plus: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2024%2024'%20fill%3D'none'%20stroke%3D'%23000'%20stroke-width%3D'2'%20stroke-linecap%3D'round'%20stroke-linejoin%3D'round'%3E%3Cpath%20d%3D'M12%205v14M5%2012h14'%2F%3E%3C%2Fsvg%3E");
+    --i-chart: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2024%2024'%20fill%3D'none'%20stroke%3D'%23000'%20stroke-width%3D'2'%20stroke-linecap%3D'round'%20stroke-linejoin%3D'round'%3E%3Cpath%20d%3D'M5%2020v-7M12%2020V4M19%2020V9'%2F%3E%3Cpath%20d%3D'M3%2021h18'%2F%3E%3C%2Fsvg%3E");
+    --i-gear: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2024%2024'%20fill%3D'none'%20stroke%3D'%23000'%20stroke-width%3D'2'%20stroke-linecap%3D'round'%20stroke-linejoin%3D'round'%3E%3Cpath%20d%3D'M4%207h9M17%207h3M4%2017h3M11%2017h9'%2F%3E%3Ccircle%20cx%3D'15'%20cy%3D'7'%20r%3D'2'%2F%3E%3Ccircle%20cx%3D'9'%20cy%3D'17'%20r%3D'2'%2F%3E%3C%2Fsvg%3E");
+    --i-search: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2024%2024'%20fill%3D'none'%20stroke%3D'%23000'%20stroke-width%3D'2'%20stroke-linecap%3D'round'%20stroke-linejoin%3D'round'%3E%3Ccircle%20cx%3D'11'%20cy%3D'11'%20r%3D'7'%2F%3E%3Cpath%20d%3D'M20%2020l-4-4'%2F%3E%3C%2Fsvg%3E");
+    --i-spark: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2024%2024'%20fill%3D'none'%20stroke%3D'%23000'%20stroke-width%3D'2'%20stroke-linecap%3D'round'%20stroke-linejoin%3D'round'%3E%3Cpath%20d%3D'M12%203l1.8%205.2L19%2010l-5.2%201.8L12%2017l-1.8-5.2L5%2010l5.2-1.8z'%2F%3E%3Cpath%20d%3D'M19%2016l.8%202.2L22%2019l-2.2.8L19%2022l-.8-2.2L16%2019l2.2-.8z'%2F%3E%3C%2Fsvg%3E");
+    --i-plus-b: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2024%2024'%20fill%3D'none'%20stroke%3D'%23000'%20stroke-width%3D'3'%20stroke-linecap%3D'round'%20stroke-linejoin%3D'round'%3E%3Cpath%20d%3D'M12%205v14M5%2012h14'%2F%3E%3C%2Fsvg%3E");
+    --bg-cashin: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2024%2024'%20fill%3D'none'%20stroke%3D'%233fae5a'%20stroke-width%3D'2.4'%20stroke-linecap%3D'round'%20stroke-linejoin%3D'round'%3E%3Cpath%20d%3D'M12%204v11M7%2011l5%205%205-5M5%2020h14'%2F%3E%3C%2Fsvg%3E");
+    --bg-out: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2024%2024'%20fill%3D'none'%20stroke%3D'%23ffffff'%20stroke-width%3D'2.4'%20stroke-linecap%3D'round'%20stroke-linejoin%3D'round'%3E%3Cpath%20d%3D'M7%2017L17%207M8%207h9v9'%2F%3E%3C%2Fsvg%3E");
+}
+
+@keyframes hop {
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+    40% {
+        transform: translateY(-6px) scale(1.08);
+    }
+    60% {
+        transform: translateY(0) scale(0.96, 1.04);
+    }
+}
+@keyframes sway {
+    0%,
+    100% {
+        transform: rotate(0);
+    }
+    25% {
+        transform: rotate(-9deg);
+    }
+    75% {
+        transform: rotate(9deg);
+    }
+}
+@keyframes bars {
+    0%,
+    100% {
+        transform: scaleY(1);
+    }
+    50% {
+        transform: scaleY(0.7);
+    }
+}
+@keyframes slide-tilt {
+    0%,
+    45%,
+    100% {
+        transform: rotate(0);
+    }
+    60%,
+    85% {
+        transform: rotate(90deg);
+    }
+}
+@keyframes nudge {
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+    50% {
+        transform: translateX(4px);
+    }
+}
+@keyframes peek {
+    0%,
+    86%,
+    100% {
+        transform: rotate(0);
+    }
+    90% {
+        transform: rotate(-18deg) scale(1.1);
+    }
+    95% {
+        transform: rotate(12deg);
+    }
+}
+@keyframes plus-turn {
+    0%,
+    65%,
+    100% {
+        transform: rotate(0);
+    }
+    85% {
+        transform: rotate(180deg) scale(1.12);
+    }
+}
+@keyframes dot-in {
+    from {
+        transform: translateX(-50%) scale(0);
+    }
+}
+@keyframes twinkle {
+    0%,
+    100% {
+        transform: scale(1) rotate(0);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.35) rotate(25deg);
+        opacity: 0.65;
+    }
+}
+@keyframes num-in {
+    from {
+        opacity: 0;
+        transform: translateY(10px) scale(0.9);
+        filter: blur(4px);
+    }
+}
+@keyframes glow {
+    0%,
+    100% {
+        text-shadow: 0 4px 18px rgba(0, 0, 0, 0.3);
+    }
+    50% {
+        text-shadow: 0 0 24px rgba(255, 215, 119, 0.7);
+    }
+}
+
+/* ---------- bottom nav icons ---------- */
+.bottom-nav a {
+    position: relative;
+}
+.nav-icon {
+    position: relative;
+    display: block;
+    width: 24px;
+    height: 24px;
+    font-size: 0;
+    color: inherit;
+    transition:
+        transform 0.4s var(--spring),
+        filter 0.3s ease;
+}
+.nav-icon::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: currentColor;
+    -webkit-mask: var(--ico) center/contain no-repeat;
+    mask: var(--ico) center/contain no-repeat;
+    transition: background 0.3s ease;
+}
+.bottom-nav a:nth-child(1) .nav-icon {
+    --ico: var(--i-home);
+}
+.bottom-nav a:nth-child(2) .nav-icon {
+    --ico: var(--i-bank);
+}
+.bottom-nav a:nth-child(3) .nav-icon {
+    --ico: var(--i-plus-b);
+}
+.bottom-nav a:nth-child(4) .nav-icon {
+    --ico: var(--i-chart);
+}
+.bottom-nav a:nth-child(5) .nav-icon {
+    --ico: var(--i-gear);
+}
+
+/* active tab: gradient icon, soft glow, glowing dot, per-icon idle motion */
+.bottom-nav a.active .nav-icon {
+    filter: drop-shadow(0 4px 8px rgba(201, 154, 59, 0.6));
+}
+.bottom-nav a.active .nav-icon::before {
+    background: linear-gradient(135deg, var(--gold), var(--rust));
+}
+.bottom-nav a.active::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--gold);
+    box-shadow: 0 0 10px var(--gold);
+    transform: translateX(-50%);
+    animation: dot-in 0.5s var(--spring);
+}
+.bottom-nav a:nth-child(1).active .nav-icon {
+    animation: hop 2.4s ease-in-out infinite;
+}
+.bottom-nav a:nth-child(2).active .nav-icon {
+    animation: sway 2.8s ease-in-out infinite;
+    transform-origin: 50% 100%;
+}
+.bottom-nav a:nth-child(4).active .nav-icon::before {
+    animation: bars 2.2s ease-in-out infinite;
+    transform-origin: 50% 100%;
+}
+.bottom-nav a:nth-child(5).active .nav-icon {
+    animation: slide-tilt 5s ease-in-out infinite;
+}
+
+/* press animations, one personality per icon */
+.bottom-nav a:nth-child(1):active .nav-icon {
+    transform: translateY(-8px) scale(1.2);
+}
+.bottom-nav a:nth-child(2):active .nav-icon {
+    transform: rotate(-14deg) scale(0.9);
+}
+.bottom-nav a:nth-child(4):active .nav-icon {
+    transform: scaleY(1.25) scaleX(0.9);
+    transform-origin: 50% 100%;
+}
+.bottom-nav a:nth-child(5):active .nav-icon {
+    transform: rotate(180deg) scale(0.85);
+}
+
+/* center + button */
+.nav-fab .nav-icon {
+    width: 26px;
+    height: 26px;
+    color: #4a3103;
+    filter: none;
+    animation: plus-turn 4.5s ease-in-out infinite;
+}
+.nav-fab::after {
+    display: none !important;
+}
+
+/* ---------- search button ---------- */
+.icon-btn {
+    font-size: 0;
+    color: var(--ink);
+}
+.icon-btn::before {
+    content: "";
+    width: 19px;
+    height: 19px;
+    background: currentColor;
+    -webkit-mask: var(--i-search) center/contain no-repeat;
+    mask: var(--i-search) center/contain no-repeat;
+    animation: peek 5s ease-in-out infinite;
+    transition: transform 0.4s var(--spring);
+}
+.icon-btn:active::before {
+    animation: none;
+    transform: rotate(-25deg) scale(0.8);
+}
+
+/* ---------- greeting sparkle (replaces the wave emoji) ---------- */
+.greeting-sub::before {
+    content: "";
+    display: inline-block;
+    width: 15px;
+    height: 15px;
+    margin-right: 7px;
+    vertical-align: -2px;
+    background: linear-gradient(135deg, var(--gold), var(--rust));
+    -webkit-mask: var(--i-spark) center/contain no-repeat;
+    mask: var(--i-spark) center/contain no-repeat;
+    animation: twinkle 2.4s ease-in-out infinite;
+}
+
+/* ---------- quick-action buttons: swap the leading emoji for an icon ---------- */
+.quick-actions a::first-letter {
+    font-size: 0;
+    padding: 9px;
+    margin-right: 5px;
+    vertical-align: 3px;
+    background: var(--bg-cashin) center/contain no-repeat;
+}
+.quick-actions a.primary::first-letter {
+    background: var(--bg-out) center/contain no-repeat;
+}
+
+/* ---------- numbers: pop in, hero figure breathes ---------- */
+.value,
+.amount-lg,
+.amount-sm,
+.acc-balance,
+.cat-total,
+.hero-amount,
+.figure {
+    animation: num-in 0.8s var(--spring) 0.25s backwards;
+}
+.balance-strip .amount-lg {
+    animation:
+        num-in 0.8s var(--spring) 0.25s backwards,
+        glow 3.5s ease-in-out 1.2s infinite;
 }
 
 /* ---------- accessibility ---------- */
