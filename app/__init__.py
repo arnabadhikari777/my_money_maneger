@@ -1,5 +1,5 @@
 import os
-from flask import Flask
+from flask import Flask, send_from_directory
 from config import Config
 from app.extensions import db, login_manager, csrf
 
@@ -30,6 +30,18 @@ def create_app(config_class=Config):
     # /api/* is called by an external script (GitHub Actions) with a shared
     # secret, not by a browser form - it has no CSRF token to send.
     csrf.exempt(api_bp)
+
+    # The service worker MUST be served from the site root. A worker loaded
+    # from /static/sw.js can only control URLs under /static/, so it never
+    # controlled the actual app pages: navigator.serviceWorker.ready never
+    # resolved on the Settings page, which silently broke "Enable reminders"
+    # (no push subscription could ever be created) and offline caching.
+    @app.route("/sw.js")
+    def service_worker():
+        resp = send_from_directory(app.static_folder, "sw.js", mimetype="application/javascript")
+        resp.headers["Service-Worker-Allowed"] = "/"
+        resp.headers["Cache-Control"] = "no-cache"
+        return resp
 
     # Security headers (baseline; add HSTS once confirmed permanently on HTTPS)
     @app.after_request

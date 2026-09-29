@@ -13,6 +13,7 @@
   <div class="li-title" style="margin-bottom:6px;">Recharge & subscription reminders</div>
   <div class="li-sub" style="margin-bottom:12px;">Get notified 7 days and 3 days before a recharge or subscription you've logged runs out.</div>
   {% if vapid_public %}
+  <div id="push-status" class="push-status" style="margin-bottom:12px;">Checking…</div>
   <button class="btn secondary" onclick="enablePushNotifications('{{ vapid_public }}')">Enable reminders</button>
   {% else %}
   <div class="li-sub">Reminders aren't set up on this server yet (VAPID keys missing — see DEPLOY.md).</div>

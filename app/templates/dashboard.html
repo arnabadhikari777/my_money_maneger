@@ -36,6 +36,7 @@
       <div class="li-sub" style="margin-top:4px;">Ran out on {{ r.expiry_date.strftime('%d %b') }}. Renewed it already?</div>
     </div>
     <form method="POST" action="{{ url_for('main.recharge_dismiss', recharge_id=r.id) }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <button type="submit" class="btn secondary" style="padding:11px 16px;font-size:12px;white-space:nowrap;">Renewed</button>
     </form>
   </div>

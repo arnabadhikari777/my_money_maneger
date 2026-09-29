@@ -12,6 +12,7 @@
 </div>
 
 <form method="POST" class="card" id="wallet-form">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   {% for d, count in holdings %}
   <div class="denom-row" data-denom="{{ d }}" data-group="wallet">
     <div class="denom-label">₹{{ d }}</div>

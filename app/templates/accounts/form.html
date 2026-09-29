@@ -18,12 +18,31 @@
     {{ form.last4.label }}
     {{ form.last4(placeholder="e.g. 4417", inputmode="numeric", maxlength="4") }}
   </div>
-  <div class="field">
+  <div class="field" id="opening-balance-field">
     {{ form.opening_balance.label }}
-    {{ form.opening_balance(inputmode="decimal") }}
+    {{ form.opening_balance(inputmode="decimal", id="opening_balance") }}
   </div>
   {{ form.submit(class="btn") }}
 </form>
+
+{% if is_new %}
+<div class="card" id="account-cash-denom-box" style="display:none;">
+  <div class="li-title" style="margin-bottom:4px;">How many notes are you starting with?</div>
+  <div class="li-sub" style="margin-bottom:10px;">Pick your notes and I'll set both the balance and your note breakdown together. Leave everything at 0 if you're starting this wallet empty.</div>
+  {% for d in denominations %}
+  <div class="denom-row" data-denom="{{ d }}" data-group="denom">
+    <div class="denom-label">₹{{ d }}</div>
+    <div class="denom-controls">
+      <button type="button" onclick="adjustDenom('denom', {{ d }}, -1)">−</button>
+      <span class="qty" id="qty_denom_{{ d }}">0</span>
+      <input type="hidden" id="denom_{{ d }}" name="denom_{{ d }}" value="0" form="account-form">
+      <button type="button" onclick="adjustDenom('denom', {{ d }}, 1)">+</button>
+    </div>
+  </div>
+  {% endfor %}
+  <div class="denom-total">Total: ₹<span id="denom-total-value">0</span></div>
+</div>
+{% endif %}
 {% endblock %}
 {% block scripts %}
 <script>
@@ -32,6 +51,9 @@
   const nameInput = document.getElementById("account_name");
   const last4Field = document.getElementById("last4-field");
   const nameHint = document.getElementById("name-hint");
+  const IS_NEW = {{ 'true' if is_new else 'false' }};
+  const balanceField = document.getElementById("opening-balance-field");
+  const denomBox = document.getElementById("account-cash-denom-box");
 
   function syncFields() {
     if (!typeSelect) return;
@@ -50,6 +72,14 @@
 
     if ((isCash || isUpi) && nameInput && !nameInput.value.trim()) {
       nameInput.value = isCash ? "Cash" : "UPI";
+    }
+
+    // Only on the "new account" form: swap the plain balance field for
+    // note counters when Cash is selected, so the wallet starts with both
+    // a balance AND a matching note breakdown in one step.
+    if (IS_NEW && balanceField && denomBox) {
+      balanceField.style.display = isCash ? "none" : "";
+      denomBox.style.display = isCash ? "block" : "none";
     }
   }
 

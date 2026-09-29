@@ -308,3 +308,8 @@ input[type="checkbox"], input[type="radio"] {
   color: var(--olive); font-weight: 600; font-size: 13.5px;
   background: var(--olive-dim); padding: 10px 14px; border-radius: var(--radius-sm);
 }
+
+/* ---------- push status line ---------- */
+.push-status { font-size: 13px; color: var(--text-dim); line-height: 1.5; }
+.push-status.ok { color: var(--olive); font-weight: 600; }
+.push-status.warn { color: var(--rust); font-weight: 600; }

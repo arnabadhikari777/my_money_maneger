@@ -239,18 +239,27 @@ def accounts_list():
 def account_add():
     form = AccountForm()
     if form.validate_on_submit():
+        denom_amount, cash_breakdown = _income_cash_from_request()
+        balance = denom_amount if (form.account_type.data == "Cash" and denom_amount is not None) else form.opening_balance.data
+
         acc = Account(
             user_id=current_user.id,
             name=form.name.data.strip(),
             account_type=form.account_type.data,
             last4=form.last4.data or None,
-            balance=form.opening_balance.data,
+            balance=balance,
         )
         db.session.add(acc)
         db.session.commit()
+
+        if form.account_type.data == "Cash" and cash_breakdown:
+            breakdown = json.loads(cash_breakdown)
+            services.set_cash_holdings(acc.id, breakdown.get("denoms", {}))
+
         flash(f"Account '{acc.name}' created.", "success")
         return redirect(url_for("main.accounts_list"))
-    return render_template("accounts/form.html", form=form, title="Add Account")
+    return render_template("accounts/form.html", form=form, title="Add Account",
+                            is_new=True, denominations=Config.CASH_DENOMINATIONS)
 
 
 @main_bp.route("/accounts/<int:account_id>")
@@ -312,7 +321,7 @@ def account_edit(account_id):
         db.session.commit()
         flash("Account updated.", "success")
         return redirect(url_for("main.accounts_list"))
-    return render_template("accounts/form.html", form=form, title="Edit Account")
+    return render_template("accounts/form.html", form=form, title="Edit Account", is_new=False)
 
 
 @main_bp.route("/accounts/<int:account_id>/delete", methods=["POST"])

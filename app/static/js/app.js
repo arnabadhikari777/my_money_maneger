@@ -1,7 +1,19 @@
-// Register the service worker for offline support + push notifications.
+// Register the service worker (push notifications + offline fallback).
+// It is served from /sw.js so its scope is the whole site. (It used to be
+// registered from /static/sw.js, which only covers /static/ - that meant it
+// never controlled the app's pages and "Enable reminders" silently hung.)
 if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("/static/sw.js").catch(console.error);
+  window.addEventListener("load", async () => {
+    try {
+      // Remove the old, wrongly-scoped registration if this device has one.
+      const regs = await navigator.serviceWorker.getRegistrations();
+      for (const r of regs) {
+        if (r.scope.endsWith("/static/")) await r.unregister();
+      }
+      await navigator.serviceWorker.register("/sw.js", { scope: "/" });
+    } catch (e) {
+      console.error("Service worker registration failed:", e);
+    }
   });
 }
 
@@ -17,26 +29,105 @@ function csrfToken() {
   return el ? el.content : "";
 }
 
-async function enablePushNotifications(vapidPublicKey) {
-  if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
-    alert("Push notifications aren't supported in this browser.");
+function withTimeout(promise, ms, message) {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => setTimeout(() => reject(new Error(message)), ms)),
+  ]);
+}
+
+function setPushStatus(text, kind) {
+  const el = document.getElementById("push-status");
+  if (!el) return;
+  el.textContent = text;
+  el.className = "push-status " + (kind || "");
+}
+
+// Shows whether THIS device currently has reminders switched on.
+async function refreshPushStatus() {
+  if (!document.getElementById("push-status")) return;
+  if (!("serviceWorker" in navigator) || !("PushManager" in window) || !("Notification" in window)) {
+    setPushStatus("This browser can't receive push notifications. Use Chrome on your phone.", "warn");
     return;
   }
-  const permission = await Notification.requestPermission();
-  if (permission !== "granted") return;
+  if (Notification.permission === "denied") {
+    setPushStatus("Notifications are blocked for this app. Allow them in Chrome's site settings, then try again.", "warn");
+    return;
+  }
+  try {
+    const reg = await withTimeout(navigator.serviceWorker.ready, 6000, "not ready");
+    const sub = await reg.pushManager.getSubscription();
+    if (sub) setPushStatus("✓ Reminders are on for this device.", "ok");
+    else setPushStatus("Reminders are off on this device.", "");
+  } catch (e) {
+    setPushStatus("Getting ready… reload this page in a moment.", "");
+  }
+}
+document.addEventListener("DOMContentLoaded", refreshPushStatus);
 
-  const reg = await navigator.serviceWorker.ready;
-  const sub = await reg.pushManager.subscribe({
-    userVisibleOnly: true,
-    applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
-  });
+// Turns reminders on for this device. Every failure path tells you what
+// went wrong instead of failing silently.
+async function enablePushNotifications(vapidPublicKey) {
+  try {
+    if (!("serviceWorker" in navigator) || !("PushManager" in window) || !("Notification" in window)) {
+      alert("This browser can't receive push notifications. Please use Chrome on your phone.");
+      return;
+    }
+    if (Notification.permission === "denied") {
+      alert("Notifications are blocked for this app. Open Chrome's site settings, allow Notifications, then tap this button again.");
+      return;
+    }
 
-  await fetch("/notifications/subscribe", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "X-CSRFToken": csrfToken() },
-    body: JSON.stringify(sub),
-  });
-  alert("Reminders enabled — I'll let you know before your recharges run out.");
+    const permission = await Notification.requestPermission();
+    if (permission !== "granted") {
+      alert("Permission wasn't granted, so I can't switch reminders on.");
+      return;
+    }
+
+    setPushStatus("Turning on…", "");
+    const reg = await withTimeout(
+      navigator.serviceWorker.ready, 10000,
+      "The background worker isn't ready yet. Reload the app and try again."
+    );
+
+    // A subscription created with an older key pair can't be reused -
+    // drop it (and tell the server) before making a fresh one.
+    const existing = await reg.pushManager.getSubscription();
+    if (existing) {
+      const oldEndpoint = existing.endpoint;
+      try { await existing.unsubscribe(); } catch (e) {}
+      try {
+        await fetch("/notifications/unsubscribe", {
+          method: "POST",
+          credentials: "same-origin",
+          headers: { "Content-Type": "application/json", "X-CSRFToken": csrfToken() },
+          body: JSON.stringify({ endpoint: oldEndpoint }),
+        });
+      } catch (e) {}
+    }
+
+    const sub = await reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
+    });
+
+    const res = await fetch("/notifications/subscribe", {
+      method: "POST",
+      credentials: "same-origin",
+      headers: { "Content-Type": "application/json", "X-CSRFToken": csrfToken() },
+      body: JSON.stringify(sub),
+    });
+    if (!res.ok) {
+      throw new Error("The server didn't accept the subscription (HTTP " + res.status + ").");
+    }
+
+    setPushStatus("✓ Reminders are on for this device.", "ok");
+    alert("Reminders are on — I'll let you know before your recharges run out.");
+  } catch (e) {
+    console.error(e);
+    refreshPushStatus();
+    alert("Couldn't turn on reminders: " + (e && e.message ? e.message : e));
+  }
 }
 
 // --- Android "Add to Home Screen" install prompt ---
@@ -116,8 +207,8 @@ function recalcGroupTotal(group) {
   if (totalEl) totalEl.textContent = total.toLocaleString("en-IN");
 
   if (group === "denom") {
-    // Add Money page: total notes counted = the amount.
-    const amountField = document.getElementById("amount");
+    // Add Money / Add Account pages: total notes counted = the amount/balance.
+    const amountField = document.getElementById("amount") || document.getElementById("opening_balance");
     if (amountField && total > 0) amountField.value = total;
   }
   if (group === "given" || group === "change") {
