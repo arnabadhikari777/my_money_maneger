@@ -119,6 +119,44 @@ def _expense_cash_from_request():
     return amount, json.dumps({"given": given, "change": change})
 
 
+def _auto_select_notes(account_id, amount, old_given: dict = None):
+    """When a cash expense is recorded without a manual note breakdown,
+    pick notes from the account's current holdings (largest first) so the
+    spend still reduces the physical-note inventory.
+
+    `old_given` is used when editing: those notes are treated as still
+    available because the old transaction will be reversed first.
+
+    Returns {denom_str: qty} on success, or None if holdings cannot cover
+    the amount exactly.
+    """
+    amount = int(Decimal(amount))
+    if amount <= 0:
+        return None
+
+    holding_map = {h.denom: h.count for h in CashHolding.query.filter_by(account_id=account_id).all()}
+    for denom_str, qty in (old_given or {}).items():
+        denom = int(denom_str)
+        holding_map[denom] = holding_map.get(denom, 0) + int(qty)
+
+    remaining = amount
+    given = {}
+    for denom in sorted(holding_map.keys(), reverse=True):
+        if remaining <= 0:
+            break
+        available = holding_map.get(denom, 0)
+        if available <= 0 or denom <= 0:
+            continue
+        take = min(remaining // denom, available)
+        if take > 0:
+            given[str(denom)] = take
+            remaining -= take * denom
+
+    if remaining > 0:
+        return None
+    return given if given else None
+
+
 def _validate_cash_given(account_id, given: dict, old_given: dict = None):
     """Returns a list of (denom, requested, available) for any denomination
     where more notes were 'given' than the wallet actually holds. `old_given`
@@ -511,6 +549,24 @@ def add_expense():
                                             spent_so_far=Decimal("0"), denominations=Config.CASH_DENOMINATIONS,
                                             account_types=account_types, recharge_category_id=recharge_category.id)
                 amount = cash_amount
+            elif account and account.account_type == "Cash" and amount and amount > 0:
+                # No manual note breakdown entered — auto-pick notes from
+                # holdings so the cash inventory always stays in sync with
+                # the account balance when spending from a Cash wallet.
+                auto_given = _auto_select_notes(account.id, amount)
+                if auto_given is None:
+                    flash(
+                        "Not enough cash notes on hand to cover this amount. "
+                        "Update your note inventory (Cash holdings) or enter "
+                        "which notes you handed over.",
+                        "error",
+                    )
+                    today = date.today()
+                    budget = Budget.query.filter_by(user_id=current_user.id, period_key=month_key(today)).first()
+                    return render_template("add_expense.html", form=form, budget=budget,
+                                            spent_so_far=Decimal("0"), denominations=Config.CASH_DENOMINATIONS,
+                                            account_types=account_types, recharge_category_id=recharge_category.id)
+                cash_breakdown = json.dumps({"given": auto_given, "change": {}})
 
         if account and account.balance < amount and account.account_type != "Credit Card":
             flash(f"Heads up: this will take {account.name} negative.", "info")
@@ -644,6 +700,29 @@ def transaction_edit(txn_id):
                 update_fields["cash_breakdown"] = cash_breakdown
             else:
                 update_fields["amount"] = form.amount.data
+                account_obj = Account.query.filter_by(id=form.account_id.data, user_id=current_user.id).first()
+                if account_obj and account_obj.account_type == "Cash" and form.amount.data and form.amount.data > 0:
+                    if form.account_id.data == txn.account_id:
+                        old_breakdown = json.loads(txn.cash_breakdown) if txn.cash_breakdown else {}
+                        old_given = old_breakdown.get("given", {})
+                    else:
+                        old_given = {}
+                    auto_given = _auto_select_notes(account_obj.id, form.amount.data, old_given=old_given)
+                    if auto_given is None:
+                        flash(
+                            "Not enough cash notes on hand to cover this amount. "
+                            "Update your note inventory (Cash holdings) or enter "
+                            "which notes you handed over.",
+                            "error",
+                        )
+                        return render_template("add_expense.html", form=form, budget=None,
+                                                spent_so_far=Decimal("0"), editing=True,
+                                                denominations=Config.CASH_DENOMINATIONS,
+                                                account_types=account_types, recharge_category_id=recharge_category.id)
+                    update_fields["cash_breakdown"] = json.dumps({"given": auto_given, "change": {}})
+                else:
+                    # Non-cash account or zero amount: clear any previous breakdown
+                    update_fields["cash_breakdown"] = None
         else:
             update_fields["amount"] = form.amount.data
             update_fields["cash_breakdown"] = None
