@@ -61,11 +61,20 @@ def pending_reminders():
     recharges = Recharge.query.filter_by(dismissed=False).filter(Recharge.expiry_date >= today).all()
     for r in recharges:
         days_left = (r.expiry_date - today).days
+        # Reminder schedule:
+        #   - 7..4 days left: one-shot "7-day" reminder (notified_7d)
+        #   - 3..2 days left: one-shot "3-day" reminder (notified_3d)
+        #   - 1 day left OR expiry day (0): hourly reminders — these are NOT
+        #     marked permanently, so every hourly cron run can send again.
+        # Inclusive windows (not exact-day equality) so a delayed/skipped
+        # GitHub Actions run cannot permanently lose a one-shot reminder.
         fire = None
-        if days_left == 7 and not r.notified_7d:
+        if 4 <= days_left <= 7 and not r.notified_7d:
             fire = 7
-        elif days_left == 3 and not r.notified_3d:
+        elif 2 <= days_left <= 3 and not r.notified_3d:
             fire = 3
+        elif days_left in (0, 1):
+            fire = "hourly"
         if fire is None:
             continue
 
@@ -74,7 +83,13 @@ def pending_reminders():
             continue
 
         label = _recharge_label(r)
-        body = f"{label}: {days_left} din(s) left ({r.expiry_date.strftime('%d %b')})"
+        date_str = r.expiry_date.strftime("%d %b")
+        if days_left == 0:
+            body = f"{label}: aaj shesh hocche! ({date_str})"
+        elif days_left == 1:
+            body = f"{label}: kaal shesh hobe — 1 din left ({date_str})"
+        else:
+            body = f"{label}: {days_left} din(s) left ({date_str})"
         for sub in subs:
             to_send.append({
                 "endpoint": sub.endpoint,
@@ -84,9 +99,11 @@ def pending_reminders():
                 "url": "/",
             })
 
+        # Only permanent one-shot flags. Hourly (day-before + expiry day) is
+        # re-emitted on every cron tick and must not be marked done.
         if fire == 7:
             r.notified_7d = True
-        else:
+        elif fire == 3:
             r.notified_3d = True
 
     db.session.commit()
