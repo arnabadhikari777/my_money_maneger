@@ -1951,6 +1951,339 @@ input[type="radio"]:checked {
         glow 3.5s ease-in-out 1.2s infinite;
 }
 
+/* ============================================================
+   GRADIENT LAYER — richer light + dark themes (overrides above)
+   ============================================================ */
+:root {
+    --page-top: #fdf7e8;
+    --page-bot: #e6ecfd;
+    --aurora-1: rgba(255, 196, 80, 0.45);
+    --aurora-2: rgba(80, 130, 255, 0.32);
+    --aurora-3: rgba(255, 110, 170, 0.28);
+    --aurora-4: rgba(60, 200, 180, 0.26);
+    --aurora-5: rgba(150, 100, 255, 0.26);
+    --btn-a: #3f7be0;
+    --btn-b: #6a3fc4;
+    --g-card: linear-gradient(160deg, #ffffff 0%, #fffaf0 55%, #f4f0ff 100%);
+    --g-ring: linear-gradient(
+        135deg,
+        rgba(201, 154, 59, 0.6),
+        rgba(44, 84, 134, 0.25) 40%,
+        rgba(255, 255, 255, 0.7) 60%,
+        rgba(140, 90, 230, 0.45)
+    );
+    --g-title: linear-gradient(
+        90deg,
+        #1e3a8a,
+        #7c3aed,
+        #ec4899,
+        #f59e0b,
+        #1e3a8a
+    );
+    --g-title-2: linear-gradient(90deg, #1e3a5f, #7c3aed);
+    --g-num: linear-gradient(90deg, #1e3a5f, #4f46e5);
+    --g-rust: linear-gradient(90deg, #b5533c, #f59e0b);
+    --nav-g: linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.9),
+        rgba(255, 247, 225, 0.84) 55%,
+        rgba(232, 238, 255, 0.88)
+    );
+    --glass-tint: rgba(255, 232, 180, 0.7);
+    --h1: #1a3a66;
+    --h2: #2b5a9a;
+    --h3: #5b3fa8;
+    --h4: #0e7490;
+}
+@media (prefers-color-scheme: dark) {
+    :root {
+        --page-top: #0a0e19;
+        --page-bot: #17112f;
+        --aurora-1: rgba(242, 189, 82, 0.16);
+        --aurora-2: rgba(74, 127, 224, 0.3);
+        --aurora-3: rgba(190, 80, 200, 0.22);
+        --aurora-4: rgba(40, 190, 170, 0.18);
+        --aurora-5: rgba(120, 90, 255, 0.26);
+        --btn-a: #5b8cff;
+        --btn-b: #8a5cf0;
+        --g-card: linear-gradient(
+            160deg,
+            #1c2436 0%,
+            #151b2a 55%,
+            #1b1733 100%
+        );
+        --g-ring: linear-gradient(
+            135deg,
+            rgba(242, 189, 82, 0.45),
+            rgba(126, 168, 255, 0.25) 40%,
+            rgba(255, 255, 255, 0.04) 60%,
+            rgba(170, 110, 255, 0.5)
+        );
+        --g-title: linear-gradient(
+            90deg,
+            #7ea8ff,
+            #c084fc,
+            #f472b6,
+            #fbbf24,
+            #7ea8ff
+        );
+        --g-title-2: linear-gradient(90deg, #dbe7ff, #c084fc);
+        --g-num: linear-gradient(90deg, #dbe7ff, #93b4ff);
+        --g-rust: linear-gradient(90deg, #ff8b6b, #fbbf24);
+        --nav-g: linear-gradient(
+            135deg,
+            rgba(30, 38, 60, 0.9),
+            rgba(22, 28, 46, 0.86) 55%,
+            rgba(40, 30, 70, 0.88)
+        );
+        --glass-tint: rgba(50, 40, 95, 0.6);
+        --h1: #0f2a5c;
+        --h2: #2a3f9e;
+        --h3: #6d2fa0;
+        --h4: #0b5f74;
+    }
+}
+@keyframes hero-flow {
+    from {
+        background-position:
+            0 0,
+            0 0,
+            0% 50%;
+    }
+    to {
+        background-position:
+            0 0,
+            0 0,
+            100% 50%;
+    }
+}
+@keyframes bar-solid {
+    to {
+        box-shadow: 0 12px 30px -14px rgba(20, 30, 70, 0.5);
+    }
+}
+
+html {
+    scroll-behavior: smooth;
+    background: linear-gradient(180deg, var(--page-top), var(--page-bot))
+        no-repeat fixed;
+    background-color: var(--page-bot);
+}
+body::after {
+    content: "";
+    position: fixed;
+    inset: -30%;
+    z-index: -1;
+    pointer-events: none;
+    will-change: transform;
+    background:
+        radial-gradient(30% 26% at 82% 72%, var(--aurora-4), transparent 70%),
+        radial-gradient(28% 24% at 8% 58%, var(--aurora-5), transparent 70%);
+    animation: aurora 30s ease-in-out infinite alternate-reverse;
+}
+
+/* top bar + nav */
+.topbar {
+    background: linear-gradient(
+        100deg,
+        var(--glass),
+        var(--glass-tint) 55%,
+        var(--glass)
+    );
+}
+.bottom-nav {
+    background: var(--nav-g);
+}
+.bottom-nav a.active {
+    background: linear-gradient(135deg, var(--gold-dim), var(--navy-dim));
+}
+.bottom-nav a.nav-fab {
+    background: linear-gradient(145deg, #ffe58f, #f5a83a 50%, #ef5b4d);
+}
+.icon-btn {
+    background: var(--g-card);
+}
+
+/* titles */
+.greeting {
+    background-image: var(--g-title);
+}
+.section-title > span {
+    background: var(--g-title-2);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+}
+
+/* hero cards: animated mesh gradient */
+.balance-strip,
+.card-hero {
+    background:
+        radial-gradient(
+            90% 120% at 100% 0%,
+            rgba(255, 215, 119, 0.42),
+            transparent 55%
+        ),
+        radial-gradient(
+            80% 100% at 0% 100%,
+            rgba(255, 105, 180, 0.32),
+            transparent 60%
+        ),
+        linear-gradient(
+            120deg,
+            var(--h1),
+            var(--h2),
+            var(--h3),
+            var(--h4),
+            var(--h1)
+        );
+    background-size:
+        100% 100%,
+        100% 100%,
+        300% 300%;
+    animation:
+        rise 0.7s var(--ease) backwards,
+        hero-flow 14s ease-in-out infinite alternate;
+}
+
+/* every card: gradient surface + gradient ring border */
+.card:not(.card-hero):not(.reminder-card),
+.auth-wrap form {
+    background:
+        var(--g-card) padding-box,
+        var(--g-ring) border-box;
+    border: 1.5px solid transparent;
+}
+.wallet-total {
+    background: var(--g-card);
+}
+.reminder-card {
+    background: linear-gradient(
+        150deg,
+        var(--rust-dim),
+        var(--surface) 65%,
+        var(--gold-dim)
+    );
+}
+
+/* numbers */
+.acc-balance,
+.wallet-total .figure {
+    background: var(--g-num);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+}
+.category-tile .cat-total {
+    background: var(--g-rust);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+}
+.amount.income {
+    background: linear-gradient(
+        135deg,
+        rgba(95, 190, 110, 0.28),
+        rgba(60, 160, 150, 0.1)
+    );
+}
+.amount.expense {
+    background: linear-gradient(
+        135deg,
+        rgba(235, 110, 80, 0.26),
+        rgba(245, 170, 60, 0.1)
+    );
+}
+.list-item {
+    border-bottom-color: transparent;
+    background-image: linear-gradient(
+        90deg,
+        transparent,
+        var(--hairline) 20%,
+        var(--hairline) 80%,
+        transparent
+    );
+    background-size: 100% 1px;
+    background-position: bottom;
+    background-repeat: no-repeat;
+}
+.list-item:last-child {
+    background-image: none;
+}
+
+/* buttons, chips, quick actions */
+.btn.secondary {
+    background-image:
+        radial-gradient(circle at 50% 50%, var(--gold-dim), transparent 62%),
+        linear-gradient(135deg, var(--surface), var(--surface-2));
+}
+.quick-actions a:not(.primary) {
+    background: linear-gradient(150deg, var(--surface) 35%, var(--olive-dim));
+}
+.chip:not(.active) {
+    background: var(--g-card);
+}
+.section-title a {
+    background: linear-gradient(135deg, var(--gold-dim), var(--rust-dim));
+}
+.category-tile .cat-actions a {
+    background: linear-gradient(135deg, var(--surface), var(--surface-2));
+}
+.denom-controls button {
+    background: var(--g-card);
+}
+
+/* inputs */
+input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),
+textarea {
+    background-image: linear-gradient(180deg, var(--surface-2), var(--surface));
+}
+select {
+    background-color: var(--surface-2);
+}
+
+/* flash messages */
+.flash-success {
+    background: linear-gradient(
+        120deg,
+        var(--olive-dim),
+        rgba(60, 160, 150, 0.06)
+    );
+}
+.flash-error {
+    background: linear-gradient(
+        120deg,
+        var(--rust-dim),
+        rgba(245, 170, 60, 0.06)
+    );
+}
+.flash-info {
+    background: linear-gradient(
+        120deg,
+        var(--gold-dim),
+        rgba(255, 120, 160, 0.06)
+    );
+}
+
+/* UX: focus rings + top bar gains shadow on scroll */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible {
+    outline: 2px solid var(--gold);
+    outline-offset: 3px;
+}
+@supports (animation-timeline: scroll()) {
+    .topbar {
+        animation: bar-solid linear both;
+        animation-timeline: scroll(root);
+        animation-range: 0 90px;
+    }
+}
+
 /* ---------- accessibility ---------- */
 @media (prefers-reduced-motion: reduce) {
     *,
