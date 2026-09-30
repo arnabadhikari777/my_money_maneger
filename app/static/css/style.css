@@ -2237,7 +2237,9 @@ body::after {
 }
 
 /* inputs */
-input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),
+input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]):not(
+        [type="submit"]
+    ):not([type="button"]),
 textarea {
     background-image: linear-gradient(180deg, var(--surface-2), var(--surface));
 }
@@ -2282,6 +2284,292 @@ select:focus-visible {
         animation-timeline: scroll(root);
         animation-range: 0 90px;
     }
+}
+
+/* ============================================================
+   BUTTON PACK — every button family gets its own gradient
+   ============================================================ */
+@keyframes btn-flow {
+    0% {
+        background-position:
+            50% 50%,
+            -10% 0,
+            0% 50%;
+    }
+    55% {
+        background-position:
+            50% 50%,
+            -10% 0,
+            60% 50%;
+    }
+    100% {
+        background-position:
+            50% 50%,
+            110% 0,
+            100% 50%;
+    }
+}
+
+/* colour sets per page/form (buttons read these variables) */
+#expense-form {
+    --b1: #ff8a3d;
+    --b2: #f0417f;
+    --b3: #a63fd1;
+    --glow: rgba(240, 65, 127, 0.7);
+}
+#money-form {
+    --b1: #10b981;
+    --b2: #06b6d4;
+    --b3: #3b82f6;
+    --glow: rgba(6, 182, 212, 0.65);
+}
+#account-form {
+    --b1: #0ea5e9;
+    --b2: #3b82f6;
+    --b3: #6366f1;
+    --glow: rgba(59, 130, 246, 0.7);
+}
+#wallet-form {
+    --b1: #a855f7;
+    --b2: #d946ef;
+    --b3: #fb7185;
+    --glow: rgba(217, 70, 239, 0.65);
+}
+form.card:not([id]) {
+    --b1: #f59e0b;
+    --b2: #f97316;
+    --b3: #ef4444;
+    --glow: rgba(249, 115, 22, 0.65);
+}
+.auth-wrap {
+    --b1: #2563eb;
+    --b2: #7c3aed;
+    --b3: #db2777;
+    --glow: rgba(124, 58, 237, 0.7);
+}
+form[action*="export"] {
+    --b1: #14b8a6;
+    --b2: #22c55e;
+    --b3: #a3e635;
+    --glow: rgba(34, 197, 94, 0.6);
+}
+#install-app-btn {
+    --b1: #22d3ee;
+    --b2: #6366f1;
+    --b3: #a855f7;
+    --glow: rgba(99, 102, 241, 0.65);
+}
+a.btn:not(.secondary) {
+    --b1: #fbbf24;
+    --b2: #f97316;
+    --b3: #ec4899;
+    --glow: rgba(249, 115, 22, 0.65);
+}
+
+/* primary buttons: flowing 3-colour gradient + sheen + coloured glow */
+.btn:not(.secondary):not(.danger) {
+    background-image:
+        radial-gradient(
+            circle at 50% 50%,
+            rgba(255, 255, 255, 0.5),
+            transparent 62%
+        ),
+        linear-gradient(
+            110deg,
+            transparent 35%,
+            rgba(255, 255, 255, 0.28) 50%,
+            transparent 65%
+        ),
+        linear-gradient(
+            120deg,
+            var(--b1, #4f46e5),
+            var(--b2, #7c3aed),
+            var(--b3, #ec4899),
+            var(--b1, #4f46e5)
+        );
+    background-size:
+        0% 0%,
+        250% 100%,
+        300% 100%;
+    background-repeat: no-repeat;
+    background-color: transparent;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.28);
+    box-shadow:
+        0 16px 30px -12px var(--glow, rgba(124, 58, 237, 0.7)),
+        0 1px 0 rgba(255, 255, 255, 0.35) inset;
+    animation: btn-flow 7s ease-in-out infinite alternate;
+}
+.btn:not(.secondary):not(.danger):active {
+    background-size:
+        260% 260%,
+        250% 100%,
+        300% 100%;
+    box-shadow:
+        0 5px 12px -6px var(--glow, rgba(124, 58, 237, 0.7)),
+        0 1px 0 rgba(255, 255, 255, 0.25) inset;
+}
+.btn.danger {
+    background-image:
+        radial-gradient(
+            circle at 50% 50%,
+            rgba(255, 255, 255, 0.5),
+            transparent 62%
+        ),
+        linear-gradient(
+            110deg,
+            transparent 35%,
+            rgba(255, 255, 255, 0.26) 50%,
+            transparent 65%
+        ),
+        linear-gradient(120deg, #ef4444, #f97316, #ec4899, #ef4444);
+    background-size:
+        0% 0%,
+        250% 100%,
+        300% 100%;
+    background-repeat: no-repeat;
+    box-shadow:
+        0 16px 30px -12px rgba(239, 68, 68, 0.7),
+        0 1px 0 rgba(255, 255, 255, 0.3) inset;
+    animation: btn-flow 6s ease-in-out infinite alternate;
+}
+.btn.danger:active {
+    background-size:
+        260% 260%,
+        250% 100%,
+        300% 100%;
+}
+
+/* secondary buttons: tinted gradient + coloured ring, never blends in */
+.btn.secondary {
+    color: var(--text);
+    border: none;
+    background-image:
+        radial-gradient(
+            circle at 50% 50%,
+            rgba(255, 255, 255, 0.55),
+            transparent 62%
+        ),
+        linear-gradient(
+            135deg,
+            var(--s1, rgba(124, 58, 237, 0.22)),
+            var(--s2, rgba(236, 72, 153, 0.18))
+        ),
+        linear-gradient(var(--surface), var(--surface));
+    background-size:
+        0% 0%,
+        100% 100%,
+        100% 100%;
+    background-position:
+        50% 50%,
+        0 0,
+        0 0;
+    background-repeat: no-repeat;
+    box-shadow:
+        inset 0 0 0 1.5px var(--s-ring, rgba(124, 58, 237, 0.45)),
+        var(--shadow);
+}
+.btn.secondary:active {
+    background-size:
+        260% 260%,
+        100% 100%,
+        100% 100%;
+}
+a.btn.secondary {
+    --s1: rgba(20, 184, 166, 0.24);
+    --s2: rgba(56, 189, 248, 0.2);
+    --s-ring: rgba(20, 184, 166, 0.55);
+}
+input.btn.secondary {
+    --s1: rgba(245, 158, 11, 0.26);
+    --s2: rgba(244, 63, 94, 0.18);
+    --s-ring: rgba(245, 158, 11, 0.55);
+}
+form[action*="restore"] .btn.secondary {
+    --s1: rgba(59, 130, 246, 0.24);
+    --s2: rgba(99, 102, 241, 0.2);
+    --s-ring: rgba(59, 130, 246, 0.55);
+}
+.btn {
+    min-height: 54px;
+    letter-spacing: 0.02em;
+}
+.btn:disabled {
+    filter: grayscale(0.7) opacity(0.55);
+    cursor: not-allowed;
+}
+
+/* home quick actions: matching colours */
+.quick-actions a.primary {
+    background-image:
+        linear-gradient(
+            110deg,
+            transparent 35%,
+            rgba(255, 255, 255, 0.28) 50%,
+            transparent 65%
+        ),
+        linear-gradient(135deg, #ff8a3d, #f0417f 55%, #a63fd1);
+    box-shadow: 0 14px 26px -10px rgba(240, 65, 127, 0.7);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+}
+.quick-actions a:not(.primary) {
+    background-image:
+        linear-gradient(
+            135deg,
+            rgba(52, 211, 153, 0.32),
+            rgba(56, 189, 248, 0.2)
+        ),
+        linear-gradient(var(--surface), var(--surface));
+    box-shadow:
+        inset 0 0 0 1.5px rgba(16, 185, 129, 0.4),
+        var(--shadow);
+}
+
+/* − / + counters: red and green gradients */
+.denom-controls button {
+    background-color: var(--surface);
+}
+.denom-controls button:first-of-type {
+    background-image: linear-gradient(
+        135deg,
+        rgba(244, 63, 94, 0.3),
+        rgba(251, 146, 60, 0.22)
+    );
+    box-shadow: inset 0 0 0 1.5px rgba(244, 63, 94, 0.4);
+}
+.denom-controls button:last-of-type {
+    background-image: linear-gradient(
+        135deg,
+        rgba(16, 185, 129, 0.32),
+        rgba(56, 189, 248, 0.24)
+    );
+    box-shadow: inset 0 0 0 1.5px rgba(16, 185, 129, 0.45);
+}
+
+/* readability: gold text was too pale on the cream theme */
+:root {
+    --link-gold: #b45309;
+    --brand-text: linear-gradient(90deg, #c2570c, #e11d74, #7c3aed, #c2570c);
+}
+@media (prefers-color-scheme: dark) {
+    :root {
+        --link-gold: #fbbf24;
+        --brand-text: linear-gradient(
+            90deg,
+            #fbbf24,
+            #fb7185,
+            #c084fc,
+            #fbbf24
+        );
+    }
+}
+.brand .brand-tracker {
+    background-image: var(--brand-text);
+}
+.section-title a {
+    color: var(--link-gold);
+}
+[style*="color:var(--gold)"] {
+    color: var(--link-gold) !important;
 }
 
 /* ---------- accessibility ---------- */
