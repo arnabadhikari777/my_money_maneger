@@ -248,3 +248,91 @@ async function loadSubcategories(categoryId, selectedId) {
     subSelect.appendChild(opt);
   });
 }
+
+
+// --- App update prompt (version.json) ---
+// After each deploy, bump app/static/version.json. On open, if the stored
+// version differs, show a modal; tapping Update stores the new version and
+// reloads so network-first fetch picks up the latest HTML/CSS/JS.
+const APP_VERSION_KEY = "mmt_app_version";
+
+function showAppUpdateModal(message, newVersion) {
+  if (document.getElementById("app-update-overlay")) return;
+  const overlay = document.createElement("div");
+  overlay.id = "app-update-overlay";
+  overlay.className = "app-update-overlay";
+  overlay.innerHTML =
+    '<div class="app-update-modal" role="dialog" aria-labelledby="app-update-title">' +
+      '<div id="app-update-title" class="app-update-title">Update available</div>' +
+      '<div class="app-update-body"></div>' +
+      '<button type="button" class="btn app-update-btn" id="app-update-confirm">Update</button>' +
+    '</div>';
+  overlay.querySelector(".app-update-body").textContent =
+    message || "A new version of My Money Tracker is ready.";
+  overlay.querySelector("#app-update-confirm").addEventListener("click", async () => {
+    try {
+      if (newVersion) {
+        localStorage.setItem(APP_VERSION_KEY, newVersion);
+      } else {
+        // SW-driven prompt: re-read the server version so we do not store a fake value.
+        const res = await fetch("/static/version.json?_=" + Date.now(), { cache: "no-store" });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.version) localStorage.setItem(APP_VERSION_KEY, String(data.version));
+        }
+      }
+    } catch (e) {}
+    // Drop cached shells so the reload is forced to hit the network.
+    if ("caches" in window) {
+      try {
+        const keys = await caches.keys();
+        await Promise.all(keys.map((k) => caches.delete(k)));
+      } catch (e) {}
+    }
+    if ("serviceWorker" in navigator) {
+      try {
+        const reg = await navigator.serviceWorker.getRegistration();
+        if (reg) await reg.update();
+      } catch (e) {}
+    }
+    window.location.reload();
+  });
+  document.body.appendChild(overlay);
+}
+
+async function checkAppUpdate() {
+  try {
+    const res = await fetch("/static/version.json?_=" + Date.now(), { cache: "no-store" });
+    if (!res.ok) return;
+    const data = await res.json();
+    const remote = String(data.version || "").trim();
+    if (!remote) return;
+    let local = null;
+    try { local = localStorage.getItem(APP_VERSION_KEY); } catch (e) {}
+    if (local === null) {
+      // First time this feature runs on this device — remember quietly.
+      try { localStorage.setItem(APP_VERSION_KEY, remote); } catch (e) {}
+      return;
+    }
+    if (local !== remote) {
+      showAppUpdateModal(data.message, remote);
+    }
+  } catch (e) {
+    // Offline or first load of a missing file — ignore.
+  }
+}
+
+document.addEventListener("DOMContentLoaded", checkAppUpdate);
+
+// If a new service worker takes control while the page is open, offer reload.
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    let local = null;
+    try { local = localStorage.getItem(APP_VERSION_KEY); } catch (e) {}
+    // Only prompt if we already have a baseline version (avoid first-install noise).
+    // Pass null for version so the confirm handler re-reads version.json from the server.
+    if (local) {
+      showAppUpdateModal("A new version of My Money Tracker is ready.", null);
+    }
+  });
+}

@@ -179,11 +179,15 @@ def _cash_shortage_message(problems):
 
 
 def _recharge_label(recharge):
+    """Label shown on dashboard Coming up / expired cards.
+    Prefer the subcategory only (e.g. "Mobile Recharge", "DTH / Cable") so the
+    parent "Bills & Recharges" name does not clutter the list. Falls back to
+    category name, then a generic "Recharge"."""
     txn = recharge.transaction
     if txn is None:
         return "Recharge"
-    if txn.category and txn.subcategory:
-        return f"{txn.category.name} · {txn.subcategory.name}"
+    if txn.subcategory:
+        return txn.subcategory.name
     if txn.category:
         return txn.category.name
     return "Recharge"

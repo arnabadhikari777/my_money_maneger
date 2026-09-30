@@ -17,11 +17,12 @@ CRON_SECRET = os.environ.get("CRON_SECRET", "")
 
 
 def _recharge_label(recharge):
+    """Subcategory-only label for push bodies (e.g. "Mobile Recharge")."""
     txn = recharge.transaction
     if txn is None:
         return "Recharge"
-    if txn.category and txn.subcategory:
-        return f"{txn.category.name} · {txn.subcategory.name}"
+    if txn.subcategory:
+        return txn.subcategory.name
     if txn.category:
         return txn.category.name
     return "Recharge"
@@ -41,6 +42,19 @@ def pending_reminders():
     secret = request.args.get("secret", "")
     if not CRON_SECRET or secret != CRON_SECRET:
         return jsonify({"ok": False, "error": "unauthorized"}), 403
+
+    if request.args.get("app_update") == "1":
+        # Deploy notify: push every subscribed device that a new app build is
+        # live. The in-app update banner (version.json + app.js) then asks the
+        # user to refresh when they open the app.
+        subs = PushSubscription.query.all()
+        return jsonify([{
+            "endpoint": s.endpoint,
+            "keys": {"p256dh": s.p256dh, "auth": s.auth},
+            "title": "My Money Tracker",
+            "body": "The app has been updated. Open it and tap Update to get the latest version.",
+            "url": "/",
+        } for s in subs])
 
     if request.args.get("test") == "1":
         # Test mode: ignore real due-dates entirely, just confirm the whole

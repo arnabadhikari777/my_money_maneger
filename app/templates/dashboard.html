@@ -32,8 +32,8 @@
 <div class="card reminder-card">
   <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
     <div>
-      <div class="li-title" style="color:var(--rust);">🔴 {{ r.label }} — Mobile Recharge Expired</div>
-      <div class="li-sub" style="margin-top:4px;">Ran out on {{ r.expiry_date.strftime('%d %b') }}. Renewed it already?</div>
+      <div class="li-title" style="color:var(--rust);">🔴 {{ r.label }} — Expired</div>
+      <div class="li-sub" style="margin-top:4px;">Ran out on {{ r.expiry_date.strftime('%d %b') }}{% if r.transaction and r.transaction.note %} · {{ r.transaction.note | decrypt_note }}{% endif %}. Renewed it already?</div>
     </div>
     <form method="POST" action="{{ url_for('main.recharge_dismiss', recharge_id=r.id) }}">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
@@ -109,7 +109,7 @@
   <div class="list-item">
     <div class="li-main">
       <div class="li-title">{{ r.label }}</div>
-      <div class="li-sub">Runs out {{ r.expiry_date.strftime('%d %b') }}</div>
+      <div class="li-sub">Runs out {{ r.expiry_date.strftime('%d %b') }}{% if r.transaction and r.transaction.note %} · {{ r.transaction.note | decrypt_note }}{% endif %}</div>
     </div>
     <div class="li-sub">{{ r.days_left }} day{{ 's' if r.days_left != 1 }} left</div>
   </div>

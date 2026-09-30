@@ -2295,3 +2295,40 @@ select:focus-visible {
         transition-duration: 0.01ms !important;
     }
 }
+
+
+/* ---- App update modal ---- */
+.app-update-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(11, 18, 32, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.app-update-modal {
+  background: var(--card, #fff);
+  color: var(--text, #0b1220);
+  border-radius: 16px;
+  padding: 22px 20px 18px;
+  max-width: 340px;
+  width: 100%;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.25);
+  text-align: center;
+}
+.app-update-title {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.app-update-body {
+  font-size: 14px;
+  line-height: 1.45;
+  opacity: 0.85;
+  margin-bottom: 16px;
+}
+.app-update-btn {
+  width: 100%;
+}
