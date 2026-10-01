@@ -54,7 +54,41 @@ def main():
         print("Running in TEST MODE - this ignores real due-dates and sends "
               "a test push to every subscribed device.")
 
-    resp = requests.get(API_URL, params=params, timeout=30)
+    # PythonAnywhere can be slow to wake up, so wait longer and retry a few times.
+    import time
+    resp = None
+    for attempt in range(1, 4):
+        try:
+            resp = requests.get(API_URL, params=params, timeout=90)
+            break
+        except (requests.exceptions.ReadTimeout,
+                requests.exceptions.ConnectionError) as e:
+            print(f"Attempt {attempt}/3 failed: {type(e).__name__}. "
+                  "Server did not answer in time.", file=sys.stderr)
+            if attempt == 3:
+                print("ERROR: PythonAnywhere did not respond after 3 tries. "
+                      "Open the site in your browser and check the Web tab / "
+                      "Error log on PythonAnywhere.", file=sys.stderr)
+                sys.exit(1)
+            time.sleep(20)
+
+    # Friendly explanation for the most common failures, so the log says
+    # exactly what to check instead of just a raw traceback.
+    if resp.status_code == 403:
+        print("ERROR 403: PythonAnywhere rejected the secret.\n"
+              "  1) GitHub secret CRON_SECRET (in THIS repo) must be exactly the same as\n"
+              "     os.environ['CRON_SECRET'] in the PythonAnywhere WSGI file.\n"
+              "     No extra spaces, no quotes.\n"
+              "  2) If the WSGI file has no CRON_SECRET line, the server secret is empty\n"
+              "     and every request gets 403.\n"
+              "  3) After changing the WSGI file, press Reload on the Web tab.\n"
+              f"  Secret length sent by GitHub: {len(CRON_SECRET)} characters.",
+              file=sys.stderr)
+        sys.exit(1)
+    if resp.status_code == 404:
+        print("ERROR 404: the URL is wrong. PYTHONANYWHERE_API_URL must end with "
+              "/api/pending-reminders", file=sys.stderr)
+        sys.exit(1)
     resp.raise_for_status()
     reminders = resp.json()
 
