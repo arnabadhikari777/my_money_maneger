@@ -1,0 +1,43 @@
+name: Send recharge reminders
+
+on:
+  schedule:
+    # Every hour, on the hour (UTC). Needed so that on the day before expiry
+    # and on the expiry day itself the user gets one push per hour. On other
+    # days the API only returns the one-shot 7-day / 3-day reminders (already
+    # marked after the first successful delivery), so extra hourly runs are
+    # cheap no-ops. GitHub's schedule is always UTC.
+    - cron: '0 * * * *'
+  workflow_dispatch:
+    inputs:
+      test_mode:
+        description: 'Send a test notification right now (ignores real due-dates)'
+        type: boolean
+        default: false
+      app_update:
+        description: 'Notify all devices that the app was updated (after you deploy)'
+        type: boolean
+        default: false
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - run: pip install requests pywebpush
+
+      - run: python send_reminders.py
+        env:
+          PYTHONANYWHERE_API_URL: ${{ secrets.PYTHONANYWHERE_API_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY }}
+          VAPID_CLAIM_EMAIL: ${{ secrets.VAPID_CLAIM_EMAIL }}
+          # schedule events have no inputs; default to false so we never
+          # accidentally enter test/app-update mode on the hourly cron.
+          TEST_MODE: ${{ github.event.inputs.test_mode || 'false' }}
+          APP_UPDATE: ${{ github.event.inputs.app_update || 'false' }}
