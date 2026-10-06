@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, SelectField, DecimalField, DateField, TextAreaField, SubmitField
+from wtforms import StringField, SelectField, DecimalField, DateField, TextAreaField, SubmitField, IntegerField
 from wtforms.validators import DataRequired, InputRequired, Length, Optional, NumberRange, Regexp
 from config import Config
 
@@ -32,7 +32,11 @@ class ExpenseForm(FlaskForm):
     note = StringField("Note (optional)", validators=[Optional(), Length(max=255)])
     recharge_duration = SelectField("Validity", coerce=int, validators=[Optional()],
                                      choices=[(0, "— how long does this cover? —")] +
-                                              [(d, l) for d, l in Config.RECHARGE_DURATIONS])
+                                              [(d, l) for d, l in Config.RECHARGE_DURATIONS] +
+                                              [(-1, "Custom (enter number of days)"),
+                                               (-2, "Pick an end date")])
+    recharge_custom_days = IntegerField("Number of days", validators=[Optional(), NumberRange(min=1, max=3650)])
+    recharge_end_date = DateField("Ends on", validators=[Optional()])
     submit = SubmitField("Add Expense")
 
 
