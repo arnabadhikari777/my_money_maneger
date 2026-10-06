@@ -498,6 +498,26 @@ def add_money():
 
 # ---------- add / edit / delete expense ----------
 
+def _resolve_recharge_days(form):
+    """Returns (days, error). Handles the preset dropdown values plus the two
+    extra options: -1 = custom number of days, -2 = a specific end date."""
+    choice = form.recharge_duration.data
+    if choice == -1:
+        days = form.recharge_custom_days.data
+        if not days or days < 1:
+            return None, "Enter how many days this recharge/bill covers."
+        return days, None
+    if choice == -2:
+        end = form.recharge_end_date.data
+        if not end:
+            return None, "Pick the date this recharge/bill ends."
+        days = (end - form.date.data).days
+        if days < 1:
+            return None, "The end date must be after the expense date."
+        return days, None
+    return choice, None
+
+
 @main_bp.route("/add-expense", methods=["GET", "POST"])
 @login_required
 def add_expense():
@@ -575,6 +595,18 @@ def add_expense():
         if account and account.balance < amount and account.account_type != "Credit Card":
             flash(f"Heads up: this will take {account.name} negative.", "info")
 
+        recharge_days = None
+        recharge_error = None
+        if form.category_id.data == recharge_category.id and form.recharge_duration.data:
+            recharge_days, recharge_error = _resolve_recharge_days(form)
+        if form.category_id.data == recharge_category.id and recharge_error:
+            flash(recharge_error, "error")
+            today = date.today()
+            budget = Budget.query.filter_by(user_id=current_user.id, period_key=month_key(today)).first()
+            return render_template("add_expense.html", form=form, budget=budget,
+                                    spent_so_far=Decimal("0"), denominations=Config.CASH_DENOMINATIONS,
+                                    account_types=account_types, recharge_category_id=recharge_category.id)
+
         if form.category_id.data == recharge_category.id and not form.recharge_duration.data:
             flash("Pick how long this recharge/bill covers, so I know when to remind you.", "error")
             today = date.today()
@@ -591,10 +623,10 @@ def add_expense():
             date=form.date.data, note=_encrypt_note(form.note.data), cash_breakdown=cash_breakdown,
         )
         if form.category_id.data == recharge_category.id and form.recharge_duration.data:
-            expiry = form.date.data + timedelta(days=form.recharge_duration.data)
+            expiry = form.date.data + timedelta(days=recharge_days)
             db.session.add(Recharge(
                 user_id=current_user.id, transaction_id=txn.id,
-                duration_days=form.recharge_duration.data,
+                duration_days=recharge_days,
                 start_date=form.date.data, expiry_date=expiry,
             ))
             db.session.commit()
