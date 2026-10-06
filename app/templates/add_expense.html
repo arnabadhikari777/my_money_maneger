@@ -25,7 +25,13 @@
   <div class="field">{{ form.note.label }}{{ form.note(placeholder="What was this for?") }}</div>
 
   <div class="field" id="recharge-duration-field" style="display:none;">
-    {{ form.recharge_duration.label }}{{ form.recharge_duration() }}
+    {{ form.recharge_duration.label }}{{ form.recharge_duration(onchange="toggleRechargeCustom()") }}
+    <div id="recharge-custom-days-box" style="display:none;margin-top:8px;">
+      {{ form.recharge_custom_days.label }}{{ form.recharge_custom_days(inputmode="numeric", min="1", placeholder="e.g. 45") }}
+    </div>
+    <div id="recharge-end-date-box" style="display:none;margin-top:8px;">
+      {{ form.recharge_end_date.label }}{{ form.recharge_end_date() }}
+    </div>
     <div class="li-sub" style="margin-top:6px;">I'll remind you 7 days and 3 days before this runs out.</div>
   </div>
 
@@ -90,7 +96,17 @@
     recalcGroupTotal("change");
     onExpenseAccountChange();
     toggleRechargeUI();
+    toggleRechargeCustom();
   });
+
+  function toggleRechargeCustom() {
+    const sel = document.getElementById("recharge_duration");
+    const daysBox = document.getElementById("recharge-custom-days-box");
+    const endBox = document.getElementById("recharge-end-date-box");
+    if (!sel || !daysBox || !endBox) return;
+    daysBox.style.display = sel.value === "-1" ? "block" : "none";
+    endBox.style.display = sel.value === "-2" ? "block" : "none";
+  }
 
   function toggleRechargeUI() {
     const catSelect = document.getElementById("category_id");
