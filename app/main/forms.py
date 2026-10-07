@@ -19,6 +19,11 @@ class AddMoneyForm(FlaskForm):
     account_id = SelectField("Receiving Account", coerce=int, validators=[DataRequired()])
     date = DateField("Date", validators=[DataRequired()])
     note = StringField("Note / Source (optional)", validators=[Optional(), Length(max=255)])
+    source_type = SelectField("Money Source", choices=[("Bank Account", "Bank Account"),
+                                                       ("Cash", "Cash"),
+                                                       ("Other", "Other")],
+                              default="Bank Account")
+    other_reason = StringField("What is this money for? (Other)", validators=[Optional(), Length(max=100)])
     submit = SubmitField("Cash In")
 
 
@@ -26,7 +31,8 @@ class ExpenseForm(FlaskForm):
     amount = DecimalField("Amount", validators=[DataRequired(), NumberRange(min=0.01)])
     category_id = SelectField("Category", coerce=int, validators=[DataRequired()])
     subcategory_id = SelectField("Purpose", coerce=int, validators=[Optional()])
-    payment_method = SelectField("Payment Method", choices=[(m, m) for m in Config.PAYMENT_METHODS])
+    payment_method = SelectField("Payment Method", choices=[(m, m) for m in Config.PAYMENT_METHODS
+                                                            if m != "Credit Card"])
     account_id = SelectField("Source Account", coerce=int, validators=[DataRequired()])
     date = DateField("Date", validators=[DataRequired()])
     note = StringField("Note (optional)", validators=[Optional(), Length(max=255)])

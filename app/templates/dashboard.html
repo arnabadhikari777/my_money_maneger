@@ -126,8 +126,8 @@
     {% for t in recent %}
     <div class="list-item">
       <div class="li-main">
-        <div class="li-title">{{ t.category.name if t.category else 'Money added' }}{% if t.subcategory %} · {{ t.subcategory.name }}{% endif %}</div>
-        <div class="li-sub">{{ t.date.strftime('%d %b') }} · {{ t.account.name if t.account else '' }}{% if t.note %} · {{ t.note | decrypt_note }}{% endif %}</div>
+        <div class="li-title">{{ 'Opening balance' if t.is_opening else (t.category.name if t.category else 'Money added') }}{% if t.subcategory %} · {{ t.subcategory.name }}{% endif %}</div>
+        <div class="li-sub">{{ t.date.strftime('%d %b') }} · {{ t.account.name if t.account else '' }}{% if t.payment_method %} · {{ t.payment_method }}{% endif %}{% if t.note %} · {{ t.note | decrypt_note }}{% endif %}</div>
       </div>
       <div class="amount {{ 'income' if t.type == 'income' else 'expense' }}">
         {{ '+' if t.type == 'income' else '-' }}{{ t.amount | inr }}

@@ -5,7 +5,13 @@
 <form method="POST" class="card" id="money-form">
   {{ form.hidden_tag() }}
   {{ show_errors(form) }}
+  <div class="field">{{ form.source_type.label }}{{ form.source_type(onchange="onSourceChange()") }}</div>
+  <div class="field" id="other-reason-box" style="display:none;">
+    {{ form.other_reason.label }}{{ form.other_reason(placeholder="e.g. Gift from friend") }}
+  </div>
+
   <div class="field">{{ form.account_id.label }}{{ form.account_id(onchange="toggleAddMoneyUI()") }}</div>
+  <div class="li-sub" id="no-account-hint" style="display:none;margin-bottom:8px;">No account of this type yet — create one from Accounts first.</div>
 
   <div class="field" id="amount-field-wrapper">
     {{ form.amount.label }}
@@ -50,6 +56,32 @@
     cashBox.style.display = isCash ? "block" : "none";
   }
 
-  document.addEventListener("DOMContentLoaded", toggleAddMoneyUI);
+  function onSourceChange() {
+    const src = document.getElementById("{{ form.source_type.id }}");
+    const sel = document.getElementById("{{ form.account_id.id }}");
+    const reasonBox = document.getElementById("other-reason-box");
+    const hint = document.getElementById("no-account-hint");
+    if (!src || !sel) return;
+    reasonBox.style.display = src.value === "Other" ? "block" : "none";
+    let firstVisible = null;
+    Array.from(sel.options).forEach(function (opt) {
+      const type = ADD_MONEY_ACCOUNT_TYPES[opt.value];
+      const show = src.value === "Other" ||
+                   (src.value === "Cash" && type === "Cash") ||
+                   (src.value === "Bank Account" && type !== "Cash");
+      opt.hidden = !show;
+      opt.disabled = !show;
+      if (show && firstVisible === null) firstVisible = opt;
+    });
+    const cur = sel.options[sel.selectedIndex];
+    if (cur && cur.disabled && firstVisible) sel.value = firstVisible.value;
+    hint.style.display = firstVisible ? "none" : "block";
+    toggleAddMoneyUI();
+  }
+
+  document.addEventListener("DOMContentLoaded", function () {
+    onSourceChange();
+    toggleAddMoneyUI();
+  });
 </script>
 {% endblock %}

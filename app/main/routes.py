@@ -204,6 +204,56 @@ def _totals_for_range(start, end):
     return txns, income, expense
 
 
+class _OpeningEntry:
+    """Read-only stand-in so an account's opening balance shows up in Recent
+    activity and in 'In this month' like any other money-in. Nothing is stored."""
+    is_opening = True
+    category = None
+    subcategory = None
+    note = None
+    type = "income"
+    payment_method = None
+
+    def __init__(self, account, amount, when):
+        self.account = account
+        self.amount = amount
+        self.date = when.date() if isinstance(when, datetime) else when
+        self.created_at = when if isinstance(when, datetime) else datetime.combine(when, datetime.min.time())
+
+
+def _opening_entries(accounts):
+    """Opening balance = current balance minus the net effect of all logged
+    transactions on that account."""
+    entries = []
+    for a in accounts:
+        net = Decimal("0")
+        for t in Transaction.query.filter_by(user_id=current_user.id, account_id=a.id).all():
+            net += t.amount if t.type == "income" else -t.amount
+        opening = Decimal(a.balance) - net
+        if opening > 0:
+            entries.append(_OpeningEntry(a, opening, a.created_at or datetime.utcnow()))
+    return entries
+
+
+def _income_source_problem(source, account):
+    if account is None:
+        return None
+    if source == "Cash" and account.account_type != "Cash":
+        return "You picked Cash as the source, so choose a Cash account."
+    if source == "Bank Account" and account.account_type == "Cash":
+        return "You picked Bank Account as the source, so choose a non-cash account."
+    return None
+
+
+def _compose_income_note(form):
+    note = (form.note.data or "").strip()
+    if form.source_type.data == "Other":
+        reason = (form.other_reason.data or "").strip()
+        if reason:
+            note = f"{reason} — {note}" if note else reason
+    return note
+
+
 # ---------- dashboard ----------
 
 @main_bp.route("/")
@@ -228,9 +278,16 @@ def dashboard():
     month_start = today.replace(day=1)
     _, month_income, month_expense = _totals_for_range(month_start, today)
 
-    recent = (Transaction.query.filter_by(user_id=current_user.id)
-              .order_by(Transaction.date.desc(), Transaction.created_at.desc())
-              .limit(8).all())
+    opening_entries = _opening_entries(accounts)
+    for e in opening_entries:
+        if e.date >= month_start:
+            month_income += e.amount
+
+    recent_txns = (Transaction.query.filter_by(user_id=current_user.id)
+                   .order_by(Transaction.date.desc(), Transaction.created_at.desc())
+                   .limit(20).all())
+    recent = sorted(recent_txns + opening_entries,
+                    key=lambda t: (t.date, t.created_at or datetime.min), reverse=True)[:20]
 
     budget = Budget.query.filter_by(user_id=current_user.id, period_key=month_key(today)).first()
 
@@ -468,6 +525,12 @@ def add_money():
     if form.validate_on_submit():
         account = Account.query.filter_by(id=form.account_id.data, user_id=current_user.id).first()
 
+        source_problem = _income_source_problem(form.source_type.data, account)
+        if source_problem:
+            flash(source_problem, "error")
+            return render_template("add_money.html", form=form,
+                                    denominations=Config.CASH_DENOMINATIONS, account_types=account_types)
+
         if account and account.account_type == "Cash":
             # For a Cash wallet, the note count IS the amount - no manual entry.
             denom_amount, cash_breakdown = _income_cash_from_request()
@@ -487,7 +550,8 @@ def add_money():
         services.create_transaction(
             user_id=current_user.id, txn_type="income", amount=amount,
             account_id=form.account_id.data, date=form.date.data,
-            note=_encrypt_note(form.note.data), cash_breakdown=cash_breakdown,
+            note=_encrypt_note(_compose_income_note(form)), cash_breakdown=cash_breakdown,
+            payment_method=form.source_type.data,
         )
         flash(f"Added {amount} to your account.", "success")
         return redirect(url_for("main.dashboard"))
@@ -666,7 +730,16 @@ def transaction_edit(txn_id):
         income_account_types = {a.id: a.account_type for a in _user_accounts()}
         if request.method == "GET":
             form.note.data = _decrypt_note(txn.note)
+            _acc = next((a for a in _user_accounts() if a.id == txn.account_id), None)
+            form.source_type.data = txn.payment_method if txn.payment_method in ("Bank Account", "Cash", "Other") \
+                else ("Cash" if _acc and _acc.account_type == "Cash" else "Bank Account")
         if form.validate_on_submit():
+            _acc_new = Account.query.filter_by(id=form.account_id.data, user_id=current_user.id).first()
+            _problem = _income_source_problem(form.source_type.data, _acc_new)
+            if _problem:
+                flash(_problem, "error")
+                return render_template("add_money.html", form=form, denominations=[], editing=True,
+                                        account_types=income_account_types)
             if form.amount.data is None or form.amount.data <= 0:
                 flash("Enter a valid amount.", "error")
                 return render_template("add_money.html", form=form, denominations=[], editing=True,
@@ -679,8 +752,9 @@ def transaction_edit(txn_id):
                 amount=form.amount.data,
                 account_id=form.account_id.data,
                 date=form.date.data,
-                note=_encrypt_note(form.note.data),
+                note=_encrypt_note(_compose_income_note(form)),
                 cash_breakdown=None,
+                payment_method=form.source_type.data,
             )
             flash("Updated.", "success")
             return redirect(url_for("main.dashboard"))
@@ -688,6 +762,8 @@ def transaction_edit(txn_id):
                                 account_types=income_account_types)
 
     form = ExpenseForm(obj=txn)
+    if txn.payment_method and txn.payment_method not in [c[0] for c in form.payment_method.choices]:
+        form.payment_method.choices = list(form.payment_method.choices) + [(txn.payment_method, txn.payment_method)]
     _populate_account_choices(form.account_id)
     _populate_category_choices(form.category_id)
     account_types = {a.id: a.account_type for a in _user_accounts()}
