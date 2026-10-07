@@ -37,6 +37,7 @@ class Account(db.Model):
     last4 = db.Column(db.String(4), nullable=True)  # never store full card/account numbers
     balance = db.Column(db.Numeric(12, 2), nullable=False, default=0)
     archived = db.Column(db.Boolean, default=False)
+    purpose = db.Column(db.String(100), nullable=True)  # only used for the "Other" account type
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     transactions = db.relationship("Transaction", backref="account", lazy=True)

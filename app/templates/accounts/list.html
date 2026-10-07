@@ -12,7 +12,7 @@
 <a href="{{ url_for('main.account_detail', account_id=a.id) }}" class="card account-card">
   <div>
     <div class="acc-name">{{ a.display_name() }}</div>
-    <div class="acc-type">{{ a.account_type }}</div>
+    <div class="acc-type">{{ a.account_type }}{% if a.purpose %} · {{ a.purpose }}{% endif %}</div>
   </div>
   <div class="acc-balance">{{ a.balance | inr }}</div>
 </a>

@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="card card-hero">
-  <div class="hero-label">{{ account.display_name() }} · {{ account.account_type }}</div>
+  <div class="hero-label">{{ account.display_name() }} · {{ account.account_type }}{% if account.purpose %} · {{ account.purpose }}{% endif %}</div>
   <div class="hero-amount">{{ account.balance | inr }}</div>
 </div>
 <div class="quick-actions">

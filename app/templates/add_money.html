@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% from "_form_errors.html" import show_errors %}
 {% block content %}
-<div class="section-title" style="margin-top:0;"><span>{{ 'Edit' if editing else 'Cash In' }}</span></div>
+<div class="section-title" style="margin-top:0;"><span>{{ 'Edit' if editing else 'Money In' }}</span></div>
 <form method="POST" class="card" id="money-form">
   {{ form.hidden_tag() }}
   {{ show_errors(form) }}
@@ -11,7 +11,7 @@
   </div>
 
   <div class="field">{{ form.account_id.label }}{{ form.account_id(onchange="toggleAddMoneyUI()") }}</div>
-  <div class="li-sub" id="no-account-hint" style="display:none;margin-bottom:8px;">No account of this type yet — create one from Accounts first.</div>
+  <div class="li-sub" id="no-account-hint" style="display:none;margin-bottom:8px;">No account of this type yet. Add one from the Accounts tab first.</div>
 
   <div class="field" id="amount-field-wrapper">
     {{ form.amount.label }}

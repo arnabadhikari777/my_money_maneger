@@ -346,6 +346,7 @@ def account_add():
             name=form.name.data.strip(),
             account_type=form.account_type.data,
             last4=form.last4.data or None,
+            purpose=(form.purpose.data or "").strip() or None if form.account_type.data == "Other" else None,
             balance=balance,
         )
         db.session.add(acc)
@@ -409,6 +410,10 @@ def cash_holdings(account_id):
 def account_edit(account_id):
     account = Account.query.filter_by(id=account_id, user_id=current_user.id).first_or_404()
     form = AccountForm(obj=account)
+    # Accounts made earlier may use an older type (UPI, Debit Card, ...). Keep
+    # that type selectable so they can still be edited.
+    if account.account_type and account.account_type not in [c[0] for c in form.account_type.choices]:
+        form.account_type.choices = list(form.account_type.choices) + [(account.account_type, account.account_type)]
     form.opening_balance.label.text = "Balance"
     if request.method == "GET":
         form.opening_balance.data = account.balance
@@ -416,6 +421,7 @@ def account_edit(account_id):
         account.name = form.name.data.strip()
         account.account_type = form.account_type.data
         account.last4 = form.last4.data or None
+        account.purpose = (form.purpose.data or "").strip() or None if form.account_type.data == "Other" else None
         account.balance = form.opening_balance.data
         db.session.commit()
         flash("Account updated.", "success")
@@ -519,8 +525,8 @@ def add_money():
         form.date.data = date.today()
 
     if not form.account_id.choices:
-        flash("Create an account first before adding money.", "error")
-        return redirect(url_for("main.account_add"))
+        flash("You have no account yet. Create one from the Accounts tab first.", "error")
+        return redirect(url_for("main.accounts_list"))
 
     if form.validate_on_submit():
         account = Account.query.filter_by(id=form.account_id.data, user_id=current_user.id).first()

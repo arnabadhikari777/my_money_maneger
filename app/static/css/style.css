@@ -2332,3 +2332,121 @@ select:focus-visible {
 .app-update-btn {
   width: 100%;
 }
+
+/* ============================================================
+   UI/UX polish pass (added on top; nothing above was removed)
+   ============================================================ */
+
+/* calmer, richer background: soft gradient + faint dot grid */
+html {
+    background:
+        linear-gradient(180deg, var(--bg) 0%, var(--surface-2) 100%) fixed;
+}
+body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background-image: radial-gradient(var(--hairline) 1px, transparent 1.2px);
+    background-size: 22px 22px;
+    opacity: 0.45;
+}
+
+/* greeting: long names no longer crowd the screen */
+.greeting {
+    font-size: 24px;
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+}
+
+/* long titles / notes wrap cleanly instead of pushing the amount */
+.li-title,
+.li-sub {
+    overflow-wrap: anywhere;
+}
+.list-item .amount {
+    flex-shrink: 0;
+}
+
+/* form fields: steady (no jumping on focus), comfortable tap height */
+input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):focus,
+select:focus,
+textarea:focus {
+    transform: none;
+}
+input:not([type="checkbox"]):not([type="radio"]),
+select {
+    min-height: 52px;
+}
+input[type="date"] {
+    -webkit-appearance: none;
+    appearance: none;
+    text-align: left;
+}
+select option:disabled {
+    color: var(--text-faint);
+}
+
+/* buttons: equal height, centered text, clear keyboard focus */
+.quick-actions a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 56px;
+}
+.btn,
+.quick-actions a,
+.bottom-nav a {
+    -webkit-user-select: none;
+    user-select: none;
+}
+.quick-actions a:focus-visible,
+.bottom-nav a:focus-visible {
+    outline: 3px solid var(--navy-dim);
+    outline-offset: 2px;
+}
+.denom-controls button {
+    min-width: 42px;
+    min-height: 42px;
+}
+
+/* flash messages: easier to read */
+.flash {
+    line-height: 1.4;
+}
+
+/* creator credit at the bottom of every page */
+.site-credit {
+    margin: 34px 0 6px;
+    padding: 22px 16px 8px;
+    text-align: center;
+    border-top: 1px solid var(--hairline);
+}
+.credit-line {
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+}
+.credit-heart {
+    color: var(--rust);
+}
+.credit-name {
+    margin-top: 6px;
+    font-family: "Space Grotesk", sans-serif;
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    background: linear-gradient(90deg, var(--ink), #3f78c2, var(--gold));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+}
+.credit-tagline {
+    margin-top: 6px;
+    font-size: 13px;
+    font-style: italic;
+    color: var(--text-dim);
+}

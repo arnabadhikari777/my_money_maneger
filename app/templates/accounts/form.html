@@ -9,6 +9,10 @@
     {{ form.account_type.label }}
     {{ form.account_type(id="account_type") }}
   </div>
+  <div class="field" id="purpose-field" style="display:none;">
+    {{ form.purpose.label }}
+    {{ form.purpose(id="account_purpose", placeholder="e.g. Savings for a trip / Wallet app") }}
+  </div>
   <div class="field" id="name-field">
     {{ form.name.label }}
     {{ form.name(id="account_name", placeholder="e.g. SBI Savings / Wallet") }}
@@ -60,7 +64,10 @@
     const t = typeSelect.value;
     const isCash = t === "Cash";
     const isUpi = t === "UPI";
-    const hideLast4 = isCash || isUpi;
+    const isOther = t === "Other";
+    const hideLast4 = isCash || isUpi || isOther;
+    const purposeField = document.getElementById("purpose-field");
+    if (purposeField) purposeField.style.display = isOther ? "block" : "none";
 
     if (last4Field) last4Field.style.display = hideLast4 ? "none" : "";
     if (nameHint) {

@@ -56,5 +56,15 @@ def create_app(config_class=Config):
 
     with app.app_context():
         db.create_all()
+        # Existing databases made before the "purpose" column existed: add it
+        # in place (keeps all old data). Safe to run on every start.
+        try:
+            from sqlalchemy import inspect, text
+            cols = [c["name"] for c in inspect(db.engine).get_columns("accounts")]
+            if "purpose" not in cols:
+                with db.engine.begin() as conn:
+                    conn.execute(text("ALTER TABLE accounts ADD COLUMN purpose VARCHAR(100)"))
+        except Exception as exc:  # never block app start-up
+            app.logger.warning("Could not add accounts.purpose column: %s", exc)
 
     return app

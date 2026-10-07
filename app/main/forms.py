@@ -6,7 +6,10 @@ from config import Config
 
 class AccountForm(FlaskForm):
     name = StringField("Account Name", validators=[DataRequired(), Length(max=80)])
-    account_type = SelectField("Type", choices=[(t, t) for t in Config.ACCOUNT_TYPES])
+    account_type = SelectField("Type", choices=[("Bank Account", "Bank Account"),
+                                                ("Cash", "Cash"),
+                                                ("Other", "Other")])
+    purpose = StringField("What is this account for? (Other)", validators=[Optional(), Length(max=100)])
     last4 = StringField("Last 4 digits (optional)", validators=[Optional(), Regexp(r"^\d{4}$", message="Enter exactly 4 digits.")])
     opening_balance = DecimalField("Opening Balance", validators=[InputRequired(), NumberRange(min=0)], default=0)
     submit = SubmitField("Save Account")
@@ -24,7 +27,7 @@ class AddMoneyForm(FlaskForm):
                                                        ("Other", "Other")],
                               default="Bank Account")
     other_reason = StringField("What is this money for? (Other)", validators=[Optional(), Length(max=100)])
-    submit = SubmitField("Cash In")
+    submit = SubmitField("Money In")
 
 
 class ExpenseForm(FlaskForm):

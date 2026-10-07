@@ -8,7 +8,7 @@
 // latest page/CSS/JS straight from the server (so updates show up right
 // away), and the cache is only used when the network fails.
 
-const CACHE_NAME = "mymoneytracker-cache-v3";
+const CACHE_NAME = "mymoneytracker-cache-v4";
 
 self.addEventListener("install", (event) => {
   event.waitUntil(

@@ -40,7 +40,7 @@ def export_user_data(user: User, password: str) -> bytes:
         "user": {"username": user.username, "email": user.email},
         "accounts": [
             {"id": a.id, "name": a.name, "account_type": a.account_type, "last4": a.last4,
-             "balance": a.balance, "archived": a.archived,
+             "balance": a.balance, "archived": a.archived, "purpose": a.purpose,
              "cash_holdings": [{"denom": h.denom, "count": h.count} for h in a.cash_holdings]}
             for a in user.accounts
         ],
@@ -103,7 +103,8 @@ def import_user_data(user: User, password: str, blob: bytes):
 
     for a in data.get("accounts", []):
         acc = Account(user_id=user.id, name=a["name"], account_type=a["account_type"],
-                      last4=a.get("last4"), balance=Decimal(a["balance"]), archived=a.get("archived", False))
+                      last4=a.get("last4"), balance=Decimal(a["balance"]), archived=a.get("archived", False),
+                      purpose=a.get("purpose"))
         db.session.add(acc)
         db.session.flush()
         account_id_map[a["id"]] = acc.id

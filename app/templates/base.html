@@ -30,6 +30,11 @@
     {% endif %}
   {% endwith %}
   {% block content %}{% endblock %}
+  <footer class="site-credit">
+    <div class="credit-line">Created with <span class="credit-heart">♥</span> by</div>
+    <div class="credit-name">Arnab Adhikari</div>
+    <div class="credit-tagline">Track every rupee. Own every decision.</div>
+  </footer>
 </main>
 
 {% if current_user.is_authenticated %}
